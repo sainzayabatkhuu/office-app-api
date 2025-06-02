@@ -1,0 +1,60 @@
+# Java & Spring Boot
+target/
+bin/
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Maven
+.mvn/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+.gradle-cache/
+**/build/
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+out/
+
+# Eclipse
+.project
+.classpath
+.settings/
+.loadpath
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Environment & Secrets
+.env
+.env.*
+*.key
+*.pem
+*.crt
+*.jks
+
+# Spring Boot Dev Tools
+.spring-boot-devtools.properties
