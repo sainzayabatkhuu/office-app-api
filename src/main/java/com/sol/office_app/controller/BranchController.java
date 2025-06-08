@@ -20,6 +20,7 @@ public class BranchController {
 
     private final BranchService branchService;
 
+    @Autowired
     public BranchController(BranchService branchService) {
         this.branchService = branchService;
     }

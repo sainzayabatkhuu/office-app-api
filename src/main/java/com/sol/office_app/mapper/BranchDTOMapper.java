@@ -2,10 +2,11 @@ package com.sol.office_app.mapper;
 
 import com.sol.office_app.dto.BranchDTO;
 import com.sol.office_app.entity.Branch;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import java.util.function.Function;
 
-@Service
+@Component
 public class BranchDTOMapper implements Function<Branch, BranchDTO> {
     @Override
     public BranchDTO apply(Branch branch) {

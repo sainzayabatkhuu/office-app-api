@@ -53,7 +53,7 @@ public class BranchServiceImpl implements BranchService {
             existingBranch.setName(entity.name());
             existingBranch.setAlternateBranchCode(entity.alternateBranchCode());
             existingBranch.setBranchAvailable(entity.branchAvailable());
-            branchRepository.save(existingBranch);
+            existingBranch = branchRepository.save(existingBranch);
             return Optional.of(branchDTOMapper.apply(existingBranch));
         } else {
             return Optional.empty();
