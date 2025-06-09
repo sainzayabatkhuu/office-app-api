@@ -21,8 +21,8 @@ public class BranchServiceImpl implements BranchService {
 
     @Override
     public Page<BranchDTO> findAll(Pageable pageable) {
-        Page<Branch> branchs = branchRepository.findAll(pageable);
-        return branchs.map(branchDTOMapper);
+        Page<Branch> branches = branchRepository.findAll(pageable);
+        return branches.map(branchDTOMapper);
     }
 
     @Override

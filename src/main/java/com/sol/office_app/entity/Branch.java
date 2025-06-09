@@ -19,6 +19,15 @@ public class Branch {
     @OneToMany(mappedBy = "parentBranch")
     private List<Branch> childBranches;
 
+    public Branch() {}
+
+    public Branch(String solId, String name, String alternateBranchCode, Boolean branchAvailable) {
+        this.solId = solId;
+        this.name = name;
+        this.alternateBranchCode = alternateBranchCode;
+        this.branchAvailable = branchAvailable;
+    }
+
     public String getSolId() {
         return solId;
     }
