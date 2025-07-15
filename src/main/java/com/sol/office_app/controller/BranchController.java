@@ -3,7 +3,6 @@ package com.sol.office_app.controller;
 import com.sol.office_app.common.Constant;
 import com.sol.office_app.dto.BranchDTO;
 import com.sol.office_app.service.BranchService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -14,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1/branches")
+@RequestMapping(Constant.BRANCH_URL_PREFIX)
 public class BranchController {
 
     private final BranchService branchService;
