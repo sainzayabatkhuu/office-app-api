@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.21.3.final using JasperReports Library version 6.21.3-4a3078d20785ebe464f18037d738d12fc98c13cf  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sample_report2" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="34e72cbd-358e-4089-8464-e8600eb319fa">
+    <property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+    <property name="com.jaspersoft.studio.data.defaultdataadapter" value="MySQL JDBC&#xA;"/>
+    <property name="com.jaspersoft.studio.report.description" value=""/>
+    <parameter name="beginDate" class="java.sql.Date">
+        <parameterDescription><![CDATA[Begin Date:]]></parameterDescription>
+    </parameter>
+    <parameter name="reportTitle" class="java.lang.String"/>
+    <parameter name="maker" class="java.lang.String"/>
+    <parameter name="endDate" class="java.sql.Date">
+        <parameterDescription><![CDATA[End Date:]]></parameterDescription>
+    </parameter>
+    <queryString language="SQL">
+        <![CDATA[CALL GetCustomersBornDates($P{beginDate}, $P{endDate} );]]>
+    </queryString>
+    <field name="id" class="java.lang.Long">
+        <property name="com.jaspersoft.studio.field.name" value="id"/>
+        <property name="com.jaspersoft.studio.field.label" value="id"/>
+        <property name="com.jaspersoft.studio.field.tree.path" value="customer"/>
+    </field>
+    <field name="name" class="java.lang.String">
+        <property name="com.jaspersoft.studio.field.name" value="name"/>
+        <property name="com.jaspersoft.studio.field.label" value="name"/>
+    </field>
+    <field name="age" class="java.lang.Integer">
+        <property name="com.jaspersoft.studio.field.name" value="age"/>
+        <property name="com.jaspersoft.studio.field.label" value="age"/>
+    </field>
+    <background>
+        <band splitType="Stretch"/>
+    </background>
+    <title>
+        <band height="48" splitType="Stretch">
+            <textField>
+                <reportElement x="2" y="0" width="550" height="30" uuid="dcb95907-d0d8-455a-aa24-ad1c7d9163ce"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="14" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{reportTitle}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+    <pageHeader>
+        <band height="96" splitType="Stretch">
+            <textField>
+                <reportElement x="453" y="1" width="100" height="30" uuid="be420297-d42d-494c-8e61-ae921bd40924"/>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$P{maker}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="353" y="2" width="100" height="30" uuid="4a49ad4e-927d-49c7-8749-2cf7baf1f299"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA["Maker:"]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="100" y="10" width="100" height="30" uuid="42c619a4-245b-48c0-8afa-cdae8c34a9cb"/>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$P{beginDate}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="10" width="100" height="30" uuid="f46a0d05-34a9-4db0-8400-2a58d82d7abe"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA["Start Date:"]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="40" width="100" height="30" uuid="64b608a3-b87f-4d60-a6d7-acd407f2b943"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA["End Date:"]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="100" y="40" width="100" height="30" uuid="8cdc4f3c-0c90-4162-b9ab-b3c77bdb27b1"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$P{endDate}]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageHeader>
+    <columnHeader>
+        <band height="32" splitType="Stretch">
+            <staticText>
+                <reportElement x="0" y="1" width="100" height="30" uuid="569bab11-5de4-41e4-8010-2af0ad6c509e">
+                    <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0de92ef6-e2f7-42b0-b655-69bf2256aab9"/>
+                </reportElement>
+                <box>
+                    <topPen lineWidth="0.25"/>
+                    <leftPen lineWidth="0.25"/>
+                    <bottomPen lineWidth="0.25"/>
+                </box>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <text><![CDATA[id]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="100" y="1" width="100" height="30" uuid="c3562daf-3a7d-442e-8a1d-75e4f59c491b">
+                    <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="16ed6c1d-45ac-4e85-bdcf-4f8a4a4f5e59"/>
+                </reportElement>
+                <box>
+                    <topPen lineWidth="0.25"/>
+                    <leftPen lineWidth="0.25"/>
+                    <bottomPen lineWidth="0.25"/>
+                </box>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <text><![CDATA[name]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="200" y="1" width="100" height="30" uuid="97a0d2a2-0f2f-4408-ac5a-f7e382134ab8">
+                    <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="94bf53ec-c53a-4398-b352-30c77f6bbad7"/>
+                </reportElement>
+                <box>
+                    <topPen lineWidth="0.25"/>
+                    <leftPen lineWidth="0.25"/>
+                    <bottomPen lineWidth="0.25"/>
+                    <rightPen lineWidth="0.25"/>
+                </box>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <text><![CDATA[age]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+    <detail>
+        <band height="30" splitType="Stretch">
+            <textField>
+                <reportElement x="0" y="0" width="100" height="30" uuid="fed100e6-0d69-4c82-8d70-8fb4d6a5af89">
+                    <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0de92ef6-e2f7-42b0-b655-69bf2256aab9"/>
+                </reportElement>
+                <box>
+                    <topPen lineWidth="0.25"/>
+                    <leftPen lineWidth="0.25"/>
+                    <bottomPen lineWidth="0.25"/>
+                </box>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="100" y="0" width="100" height="30" uuid="f7a44868-a66d-40ff-88d1-db3ad9ff0eb2">
+                    <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="16ed6c1d-45ac-4e85-bdcf-4f8a4a4f5e59"/>
+                </reportElement>
+                <box>
+                    <topPen lineWidth="0.25"/>
+                    <leftPen lineWidth="0.25"/>
+                    <bottomPen lineWidth="0.25"/>
+                </box>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="200" y="0" width="100" height="30" uuid="e46808fe-cf13-44c8-8c83-ebb8dc4f7712">
+                    <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="94bf53ec-c53a-4398-b352-30c77f6bbad7"/>
+                </reportElement>
+                <box>
+                    <topPen lineWidth="0.25"/>
+                    <leftPen lineWidth="0.25"/>
+                    <bottomPen lineWidth="0.25"/>
+                    <rightPen lineWidth="0.25"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{age}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+    <columnFooter>
+        <band height="45" splitType="Stretch"/>
+    </columnFooter>
+    <pageFooter>
+        <band height="54" splitType="Stretch"/>
+    </pageFooter>
+    <summary>
+        <band height="42" splitType="Stretch"/>
+    </summary>
+    <noData>
+        <band height="99">
+            <textField>
+                <reportElement x="0" y="3" width="550" height="30" uuid="0bc6ab0a-7cde-4156-be07-2e94905b223c"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="14" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{reportTitle}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="50" width="553" height="49" forecolor="#FF0E0A" uuid="38f43179-c7aa-4ae1-9e03-a70d15730e4c"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Arial" size="12"/>
+                </textElement>
+                <text><![CDATA[*** ⚠ No data available to display. ***
+Please adjust your filters or date range and try again.]]></text>
+            </staticText>
+        </band>
+    </noData>
+</jasperReport>
