@@ -25,8 +25,7 @@ public class BranchController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<BranchDTO> index(@RequestParam(defaultValue = "0") int page,
                                                  @RequestParam(defaultValue = "10") int size){
-        Page<BranchDTO> pageData= branchService.findAll(PageRequest.of(page, size));
-        return pageData;
+        return branchService.findAll(PageRequest.of(page, size));
     }
 
     @GetMapping("/{id}")

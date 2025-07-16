@@ -1,6 +1,7 @@
 package com.sol.office_app.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sol.office_app.common.Auditable;
 import jakarta.persistence.*;
 import org.hibernate.annotations.SoftDelete;
 import org.hibernate.annotations.SoftDeleteType;
@@ -16,7 +17,7 @@ import java.util.*;
 @Entity
 @SoftDelete(strategy = SoftDeleteType.DELETED)
 @EntityListeners(AuditingEntityListener.class)
-public class User implements UserDetails {
+public class User extends Auditable implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)

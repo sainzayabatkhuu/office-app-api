@@ -61,10 +61,8 @@ public class AuthenticationService {
 //
     public LoginResponse authenticate(HttpServletRequest req, LoginDto input) {
 
-        System.out.println(passwordEncoder.encode("qwerty"));
-
         User user = userRepository.findByEmail(input.username())
-                .orElseThrow();
+                .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -80,7 +78,7 @@ public class AuthenticationService {
             user.setExpirationTime(LocalDateTime.now());
 
             userRepository.save(user);
-            //userRepository.flush();
+            userRepository.flush();
 
             //userLoginHistoryService.logLogin(user, req.getRemoteAddr(), true);
             // don't forget it. if you forget this one, you will face with Deadlock error
@@ -96,6 +94,7 @@ public class AuthenticationService {
                             + " It will be unlocked after 15 minutes.");
                 }
                 user = userRepository.save(user);
+                userRepository.flush();
 
                 //userLoginHistoryService.logLogin(user, req.getRemoteAddr(), false);
                 //userLoginHistoryRepository.flush();
