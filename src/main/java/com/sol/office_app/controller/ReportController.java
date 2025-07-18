@@ -9,8 +9,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,11 +33,10 @@ public class ReportController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<ReportDTO> index(@RequestParam(defaultValue = "0") int page,
                                  @RequestParam(defaultValue = "10") int size){
-        Page<ReportDTO> pageData= reportService.findAll(PageRequest.of(page, size));
-        return pageData;
+        return reportService.findAll(PageRequest.of(page, size));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<ReportDTO> get(@PathVariable("id") Long id){
         return reportService.get(id)
                 .map(ResponseEntity::ok)
@@ -48,7 +50,7 @@ public class ReportController {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     public ResponseEntity<ReportDTO> update(@PathVariable Long id, @RequestBody ReportDTO reportDTO) {
         Optional<ReportDTO> updatedBranchOpt = reportService.update(id, reportDTO);
         return updatedBranchOpt
@@ -56,12 +58,19 @@ public class ReportController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<ReportDTO> delete(@PathVariable Long id, @RequestBody ReportDTO reportDTO) {
         Optional<ReportDTO> updatedBranchOpt = reportService.delete(id, reportDTO);
         return updatedBranchOpt
                 .map(branchDTO -> new ResponseEntity<>(branchDTO, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping(value = "/report-list", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Page<ReportDTO> getList(@RequestParam(defaultValue = "0") int page,
+                                   @RequestParam(defaultValue = "10") int size,
+                                   Authentication authentication){
+        return reportService.getList(authentication, PageRequest.of(page, size));
     }
 
     @GetMapping("/details/{id}")

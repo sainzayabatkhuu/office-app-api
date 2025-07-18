@@ -25,7 +25,7 @@ public class SecurityRuleController {
         return new ResponseEntity<>(securityRuleService.findAll(PageRequest.of(page, size)), HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<SecurityRuleDTO> get(@PathVariable("id") Long id){
         return securityRuleService.get(id)
                 .map(ResponseEntity::ok)
@@ -39,7 +39,7 @@ public class SecurityRuleController {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     public ResponseEntity<SecurityRuleDTO> update(@PathVariable Long id, @RequestBody SecurityRuleDTO securityRuleDTO) {
         Optional<SecurityRuleDTO> updatedSecurityRuleOpt = securityRuleService.update(id, securityRuleDTO);
         return updatedSecurityRuleOpt
@@ -47,7 +47,7 @@ public class SecurityRuleController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<SecurityRuleDTO> delete(@PathVariable Long id, @RequestBody SecurityRuleDTO securityRuleDTO) {
         Optional<SecurityRuleDTO> updatedSecurityRuleOpt = securityRuleService.delete(id, securityRuleDTO);
         return updatedSecurityRuleOpt

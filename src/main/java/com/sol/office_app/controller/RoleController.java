@@ -25,7 +25,7 @@ public class RoleController {
         return new ResponseEntity<>(ruleService.findAll(PageRequest.of(page, size)), HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<RoleDTO> get(@PathVariable("id") Long id){
         return ruleService.get(id)
                 .map(ResponseEntity::ok)
@@ -39,7 +39,7 @@ public class RoleController {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     public ResponseEntity<RoleDTO> update(@PathVariable Long id, @RequestBody RoleDTO rulesDTO) {
         Optional<RoleDTO> updatedRuleOpt = ruleService.update(id, rulesDTO);
         return updatedRuleOpt
@@ -47,7 +47,7 @@ public class RoleController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<RoleDTO> delete(@PathVariable Long id, @RequestBody RoleDTO rulesDTO) {
         Optional<RoleDTO> updatedRuleOpt = ruleService.delete(id, rulesDTO);
         return updatedRuleOpt

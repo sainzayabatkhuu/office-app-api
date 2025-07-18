@@ -28,7 +28,7 @@ public class BranchController {
         return branchService.findAll(PageRequest.of(page, size));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<BranchDTO> get(@PathVariable("id") String id){
         return branchService.get(id)
                 .map(ResponseEntity::ok)
@@ -42,7 +42,7 @@ public class BranchController {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     public ResponseEntity<BranchDTO> update(@PathVariable String id, @RequestBody BranchDTO branchsDTO) {
         Optional<BranchDTO> updatedBranchOpt = branchService.update(id, branchsDTO);
         return updatedBranchOpt
@@ -50,7 +50,7 @@ public class BranchController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<BranchDTO> delete(@PathVariable String id, @RequestBody BranchDTO branchsDTO) {
         Optional<BranchDTO> updatedBranchOpt = branchService.delete(id, branchsDTO);
         return updatedBranchOpt

@@ -1,20 +1,16 @@
 package com.sol.office_app.controller;
 
 import com.sol.office_app.common.Constant;
-import com.sol.office_app.dto.BranchDTO;
+import com.sol.office_app.config.SecurityRule;
 import com.sol.office_app.dto.UserDTO;
 import com.sol.office_app.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -25,12 +21,14 @@ public class UserController {
     private UserService userService;
 
     @GetMapping()
+    @SecurityRule
     public ResponseEntity<Page<UserDTO>> index(@RequestParam(defaultValue = "0") int page,
                                                @RequestParam(defaultValue = "10") int size){
         return new ResponseEntity<>(userService.findAll(PageRequest.of(page, size)), HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
+    @SecurityRule
     public ResponseEntity<UserDTO> get(@PathVariable("id") Long id){
         return userService.get(id)
                 .map(ResponseEntity::ok)
@@ -38,13 +36,15 @@ public class UserController {
     }
 
     @PostMapping
+    @SecurityRule
     public ResponseEntity<UserDTO> save(@RequestBody UserDTO user) {
         Optional<UserDTO> savedUser = userService.save(user);
         return savedUser.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
+    @SecurityRule
     public ResponseEntity<UserDTO> update(@PathVariable Long id, @RequestBody UserDTO user) {
         Optional<UserDTO> updatedUserOpt = userService.update(id, user);
         return updatedUserOpt
@@ -52,7 +52,8 @@ public class UserController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
+    @SecurityRule
     public ResponseEntity<UserDTO> delete(@PathVariable Long id, @RequestBody UserDTO user) {
         Optional<UserDTO> updatedUserOpt = userService.delete(id, user);
         return updatedUserOpt
@@ -79,7 +80,8 @@ public class UserController {
 //                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
 //    }
 
-    @PutMapping("/{id}/reset-password")
+    @PutMapping("/{id:\\d+}/reset-password")
+    @SecurityRule
     public ResponseEntity<UserDTO> resetPassword(@PathVariable Long id, @RequestBody UserDTO user) {
         Optional<UserDTO> updatedUserOpt = userService.update(id, user);
         return updatedUserOpt

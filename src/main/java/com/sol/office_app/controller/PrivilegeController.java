@@ -25,7 +25,7 @@ public class PrivilegeController {
         return new ResponseEntity<>(privilegeService.findAll(PageRequest.of(page, size)), HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<PrivilegeDTO> get(@PathVariable("id") Long id){
         return privilegeService.get(id)
                 .map(ResponseEntity::ok)
@@ -39,7 +39,7 @@ public class PrivilegeController {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     public ResponseEntity<PrivilegeDTO> update(@PathVariable Long id, @RequestBody PrivilegeDTO privilegesDTO) {
         Optional<PrivilegeDTO> updatedPrivilegeOpt = privilegeService.update(id, privilegesDTO);
         return updatedPrivilegeOpt
@@ -47,7 +47,7 @@ public class PrivilegeController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<PrivilegeDTO> delete(@PathVariable Long id, @RequestBody PrivilegeDTO privilegesDTO) {
         Optional<PrivilegeDTO> updatedPrivilegeOpt = privilegeService.delete(id, privilegesDTO);
         return updatedPrivilegeOpt
