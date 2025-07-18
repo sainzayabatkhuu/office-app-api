@@ -1,22 +1,23 @@
-package com.sol.office_app.security;
+package com.sol.office_app.service;
 
+import com.sol.office_app.config.JwtUtils;
 import com.sol.office_app.dto.LoginDto;
 import com.sol.office_app.dto.LoginResponse;
+import com.sol.office_app.entity.Role;
 import com.sol.office_app.entity.User;
 import com.sol.office_app.repository.RoleRepository;
 import com.sol.office_app.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthenticationService {
@@ -26,27 +27,16 @@ public class AuthenticationService {
     @Value("${security.jwt.lock.time}")
     private long LOCK_TIME_DURATION; // 15 minutes
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
-//    private final UserLoginHistoryRepository userLoginHistoryRepository;
-    private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
-//    private final UserLoginHistoryService userLoginHistoryService;
+    private final JwtUtils jwtUtils;
 
     public AuthenticationService(
             UserRepository userRepository,
-            AuthenticationManager authenticationManager,
-            PasswordEncoder passwordEncoder,
             RoleRepository roleRepository,
-            //UserLoginHistoryRepository userLoginHistoryRepository, UserLoginHistoryService userLoginHistoryService,
-            JwtService jwtService) {
-        this.authenticationManager = authenticationManager;
+            JwtUtils jwtUtils) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
-//        this.userLoginHistoryRepository = userLoginHistoryRepository;
-        this.jwtService = jwtService;
-//        this.userLoginHistoryService = userLoginHistoryService;
+        this.jwtUtils = jwtUtils;
     }
 
 //    public User signup(RegisterUserDto input) {
@@ -64,12 +54,6 @@ public class AuthenticationService {
         User user = userRepository.findByEmail(input.username())
                 .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
         try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            input.username(),
-                            input.password()
-                    )
-            );
             // update font-size and theme name
             if (user.getFontSize() == null || user.getFontSize().equalsIgnoreCase(""))
                 user.setFontSize("small");
@@ -107,9 +91,30 @@ public class AuthenticationService {
             throw new RuntimeException("invalid access");
         }
 
-        String jwtToken = jwtService.generateToken(user);
+        Set<Role> roles = user.getRoles();
+        Map<String, Set<String>> rules = new HashMap<>();
+        rules.put("get", new HashSet<>());
+        rules.put("post", new HashSet<>());
+        rules.put("put", new HashSet<>());
+        rules.put("delete", new HashSet<>());
+        roles.forEach(role -> {
+            role.getPrivileges().forEach(p -> {
+                System.out.println(p);
+                String[] pragments = p.getName().split(":");
+                String method = pragments[0];
+                Set<String> urls = Arrays.stream(pragments[1].split(",")).collect(Collectors.toSet());
+                Set<String> original = rules.get(method);
+                original.addAll(urls);
+                System.out.println(urls);
+                rules.put(method, original);
+            });
+        });
 
-        return new LoginResponse(jwtToken,jwtService.getExpirationTime(), null);
+        String jwtToken = jwtUtils.generateToken(user.getUsername(),
+                user.getRoles().stream().map(Role::getName).collect(Collectors.toList()),
+                rules);
+
+        return new LoginResponse(jwtToken,jwtUtils.getExpirationTime(), null);
     }
 
     public boolean unlockWhenTimeExpired(User user) {

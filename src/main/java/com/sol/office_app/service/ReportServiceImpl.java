@@ -3,8 +3,12 @@ package com.sol.office_app.service;
 import com.sol.office_app.dto.ReportDTO;
 import com.sol.office_app.dto.ReportParameterDTO;
 import com.sol.office_app.entity.Report;
+import com.sol.office_app.entity.Role;
+import com.sol.office_app.entity.User;
 import com.sol.office_app.mapper.ReportDTOMapper;
 import com.sol.office_app.repository.ReportRepository;
+import com.sol.office_app.repository.RoleRepository;
+import com.sol.office_app.repository.UserRepository;
 import com.sol.office_app.util.Utils;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.design.JasperDesign;
@@ -13,15 +17,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.Principal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ReportServiceImpl implements ReportService {
@@ -35,10 +43,16 @@ public class ReportServiceImpl implements ReportService {
     @Autowired
     private ReportRepository reportRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
     @Override
     public Page<ReportDTO> findAll(Pageable pageable) {
-        Page<Report> branches = reportRepository.findAll(pageable);
-        return branches.map(reportDTOMapper);
+        Page<Report> reports = reportRepository.findAll(pageable);
+        return reports.map(reportDTOMapper);
     }
 
     @Override
@@ -65,6 +79,28 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public Optional<ReportDTO> delete(Long aLong, ReportDTO entity) {
         return Optional.empty();
+    }
+
+    public Page<ReportDTO> getList(Authentication authentication, Pageable pageable) {
+        System.out.println("start -------------------");
+        User user = (User) authentication.getPrincipal();
+        System.out.println(user.getId());
+        System.out.println(user.getBranch().getSolId());
+        System.out.println(user.getRoles());
+        System.out.println(user.getBranch().getSolId());
+//        System.out.println(username);
+//        User user = userRepository.findByEmail(username)
+//                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+//        System.out.println(user);
+
+        List<Long> roleIds = user.getRoles().stream()
+                .map(Role::getId)
+                .collect(Collectors.toList());
+
+        System.out.println("Roles: " + roleIds);
+        System.out.println("end -------------------");
+        Page<Report> reports = reportRepository.findReportsByUserRoleIds(roleIds,pageable);
+        return reports.map(reportDTOMapper);
     }
 
     public Optional<ReportDTO> getDetails(Long id) {

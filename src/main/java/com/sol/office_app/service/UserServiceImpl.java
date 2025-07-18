@@ -1,5 +1,6 @@
 package com.sol.office_app.service;
 
+import com.sol.office_app.config.JwtUtils;
 import com.sol.office_app.dto.UserDTO;
 import com.sol.office_app.entity.User;
 import com.sol.office_app.mapper.BranchDTOMapper;
@@ -8,7 +9,6 @@ import com.sol.office_app.mapper.UserRolesDTOMapper;
 import com.sol.office_app.repository.BranchRepository;
 import com.sol.office_app.repository.UserRepository;
 import com.sol.office_app.repository.UserRolesRepository;
-import com.sol.office_app.security.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private JwtService jwtService;
+    private JwtUtils jwtUtils;
 
 //    @Autowired
 //    private UserLoginHistoryService userLoginHistoryService;
