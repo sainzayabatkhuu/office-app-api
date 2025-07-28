@@ -1,6 +1,7 @@
 package com.sol.office_app.service;
 
 import com.sol.office_app.config.JwtUtils;
+import com.sol.office_app.dto.ProfileDTO;
 import com.sol.office_app.dto.UserDTO;
 import com.sol.office_app.entity.User;
 import com.sol.office_app.mapper.BranchDTOMapper;
@@ -112,39 +113,41 @@ public class UserServiceImpl implements UserService {
 //
 //        return new LoginResponse(accessToken, refreshToken, 0L);
 //    }
-//
-//    @Override
-//    public ProfileDTO me(Principal principal) {
-//        ProfileDTO objProfile = new ProfileDTO();
-//
-//        if(principal != null) {
-//            User user = userRepository.findByEmail(principal.getName())
-//                    .orElseThrow();
-//            objProfile.setEmail(user.getEmail());
-//            objProfile.setUsername(user.getUsername());
-//            objProfile.setFirst_name(user.getFirstname());
-//            objProfile.setLast_name(user.getLastname());
-//            objProfile.setUser_language(user.getUserLanguage());
-//            objProfile.setAccount_format(user.getAccountFormat());
-//            objProfile.setDate_format(user.getDateFormat());
-//            objProfile.setShow_dash(user.getShowDash());
-//            objProfile.setAlert_on_home(user.getAlertOnHome());
-//            objProfile.setNumber_mask(user.getNumberMask());
-//            objProfile.setFont_size(user.getFontSize().toLowerCase());
-//            objProfile.setTheme_name(user.getThemeName());
-//            objProfile.setBranch_code(user.getBranch().getBranchCode());
-//
-//            OffsetDateTime offsetDateTime = user.getExpirationTime().atOffset(ZoneOffset.systemDefault().getRules().getOffset(user.getExpirationTime()));
-//            Instant instant = offsetDateTime.toInstant();
-//            Long epochMilli = instant.toEpochMilli();
-//
-//            objProfile.setExpiration_time((epochMilli + jwtExpiration));
-//            objProfile.setUserstatus(!user.isEnabled() ? "Unenabled" : "Enabled");
-//            objProfile.setMulti_brnch_access(user.isMultiBrnchAccess());
-//
-//        }
-//        return objProfile;
-//    }
+
+
+    public ProfileDTO me(Principal principal) {
+        ProfileDTO objProfile = null;
+
+        if(principal != null) {
+            User user = userRepository.findByUsername(principal.getName())
+                    .orElseThrow();
+
+            OffsetDateTime offsetDateTime = user.getExpirationTime().atOffset(ZoneOffset.systemDefault().getRules().getOffset(user.getExpirationTime()));
+            Instant instant = offsetDateTime.toInstant();
+            Long epochMilli = instant.toEpochMilli();
+
+            objProfile = new ProfileDTO(
+                user.getUsername(),
+                user.getFirstname(),
+                user.getLastname(),
+                user.getEmail(),
+                user.getFontSize().toLowerCase(),
+                user.getThemeName(),
+                !user.isEnabled() ? "Unenabled" : "Enabled",
+                user.getAccountFormat(),
+                user.getDateFormat(),
+                user.getShowDash(),
+                user.getAlertOnHome(),
+                user.getNumberMask(),
+                user.isMultiBrnchAccess(),
+                user.getBranch().getSolId(),
+                user.getUserLanguage(),
+                (epochMilli + jwtExpiration)
+            );
+
+        }
+        return objProfile;
+    }
 //
 //    @Override
 //    public Optional<ProfileDTO> saveSettings(Principal principal, ProfileDTO profileDTO) {
@@ -169,8 +172,6 @@ public class UserServiceImpl implements UserService {
 //
 //    @Override
 //    public Optional<ChangePasswordDTO> changePassword(Principal principal, ChangePasswordDTO changePasswordDTO) {
-//
-//
 //        Optional<User> user = userRepository.findByEmail(principal.getName());
 //        if(user.isPresent()) {
 //            User existingUser = user.get();

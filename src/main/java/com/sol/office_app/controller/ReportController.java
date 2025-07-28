@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.Map;
@@ -43,9 +44,11 @@ public class ReportController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    @PostMapping
-    public ResponseEntity<ReportDTO> save(@RequestBody ReportDTO reportDTO) {
-        Optional<ReportDTO> savedBranch = reportService.save(reportDTO);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ReportDTO> save(
+            @RequestParam("file") MultipartFile file
+    ) {
+        Optional<ReportDTO> savedBranch = reportService.save(file);
         return savedBranch.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
@@ -81,18 +84,15 @@ public class ReportController {
     }
 
     @GetMapping("/export")
-    public ResponseEntity<byte[]> generatePdfReport(
+    public ResponseEntity<String> generatePdfReport(
             @RequestParam String format,
             @RequestParam Long id,
-            @RequestParam Map<String, Object> params
+            @RequestParam Map<String, Object> params,
+            Authentication authentication
     ) throws Exception {
-        byte[] pdfData = reportService.exportToFormat(id, format, params);
-
-        MediaType mediaType = getMediaTypeByFormat(format);
+        String fileName = reportService.exportToFormat(authentication, id, format, params);
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=report.pdf") // 👈 inline instead of attachment
-                .contentType(mediaType)
-                .body(pdfData);
+                .body(fileName);
     }
 }

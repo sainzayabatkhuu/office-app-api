@@ -110,7 +110,9 @@ public class AuthenticationService {
             });
         });
 
-        String jwtToken = jwtUtils.generateToken(user.getUsername(),
+        String jwtToken = jwtUtils.generateToken(
+                user.getUsername(),
+
                 user.getRoles().stream().map(Role::getName).collect(Collectors.toList()),
                 rules);
 

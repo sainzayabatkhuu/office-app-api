@@ -23,6 +23,9 @@ public class User extends Auditable implements UserDetails {
     @Column(nullable = false)
     private Long id;
 
+    @Column(unique = true, length = 50, nullable = false)
+    private String username;
+
     @Column(unique = true, length = 100, nullable = false)
     private String email;
 
@@ -80,7 +83,7 @@ public class User extends Auditable implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return this.username;
     }
 
     @Override
@@ -334,5 +337,9 @@ public class User extends Auditable implements UserDetails {
 
     public void setBranch(Branch branch) {
         this.branch = branch;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

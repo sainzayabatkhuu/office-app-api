@@ -23,10 +23,10 @@ public class JwtUtils {
 
     public static Claims extractAllClaims(String token) {
         return Jwts.parser()
-            .verifyWith(key)
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     public static String getUsername(String token) {
@@ -61,14 +61,14 @@ public class JwtUtils {
     ) {
 
         return Jwts.builder()
-            .claims()
-            .add(extraClaims)
-            .subject(username)
-            .issuedAt(new Date(System.currentTimeMillis()))
-            .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
-            .and()
-            .signWith(key, Jwts.SIG.HS256)
-            .compact();
+                .claims()
+                .add(extraClaims)
+                .subject(username)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .and()
+                .signWith(key, Jwts.SIG.HS256)
+                .compact();
     }
 
     public String generateToken(String username, List<String> rolePermissions, Map<String, Set<String>> rules) {

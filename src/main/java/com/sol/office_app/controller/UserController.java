@@ -2,8 +2,10 @@ package com.sol.office_app.controller;
 
 import com.sol.office_app.common.Constant;
 import com.sol.office_app.config.SecurityRule;
+import com.sol.office_app.dto.ProfileDTO;
 import com.sol.office_app.dto.UserDTO;
 import com.sol.office_app.service.UserService;
+import com.sol.office_app.service.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -11,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.Optional;
 
 @RestController
@@ -18,7 +21,7 @@ import java.util.Optional;
 public class UserController {
 
     @Autowired
-    private UserService userService;
+    private UserServiceImpl userService;
 
     @GetMapping()
     @SecurityRule
@@ -66,12 +69,12 @@ public class UserController {
 //        return ResponseEntity.ok(userService.refreshToken(principal));
 //    }
 
-//    @GetMapping("/me")
-//    public ResponseEntity<ProfileDTO> me(Principal principal) {
-//        ProfileDTO objProfile = userService.me(principal);
-//        return ResponseEntity.ok(objProfile);
-//    }
-//
+    @GetMapping("/me")
+    public ResponseEntity<ProfileDTO> me(Principal principal) {
+        ProfileDTO objProfile = userService.me(principal);
+        return ResponseEntity.ok(objProfile);
+    }
+
 //    @PutMapping("/me")
 //    public ResponseEntity<ProfileDTO> me(Principal principal,@RequestBody ProfileDTO profileDTO) {
 //        Optional<ProfileDTO> objProfile = userService.saveSettings(principal, profileDTO);

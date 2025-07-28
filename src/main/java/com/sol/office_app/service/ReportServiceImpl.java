@@ -1,10 +1,10 @@
 package com.sol.office_app.service;
 
+import com.sol.office_app.config.CustomUserPrincipal;
 import com.sol.office_app.dto.ReportDTO;
 import com.sol.office_app.dto.ReportParameterDTO;
 import com.sol.office_app.entity.Report;
 import com.sol.office_app.entity.Role;
-import com.sol.office_app.entity.User;
 import com.sol.office_app.mapper.ReportDTOMapper;
 import com.sol.office_app.repository.ReportRepository;
 import com.sol.office_app.repository.RoleRepository;
@@ -15,19 +15,22 @@ import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.PathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.sql.DataSource;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.Principal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,8 +70,36 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public Optional<ReportDTO> save(ReportDTO entity) {
+    public Optional<ReportDTO> save(ReportDTO dto) {
         return Optional.empty();
+    }
+
+    public Optional<ReportDTO> save(MultipartFile file) {
+
+        try {
+            Path path = Paths.get("uploads/reports/jrxml").toAbsolutePath();
+            PathResource resource = new PathResource(path);
+            File reportsDir = resource.getFile();
+
+            // Ensure the directory exists
+            if (!reportsDir.exists()) {
+                reportsDir.mkdirs();
+            }
+            File fileToSave = new File(reportsDir, file.getOriginalFilename());
+
+            // Save the uploaded file
+            file.transferTo(fileToSave);
+        }
+        catch (IOException e) {
+            System.out.println(e.getMessage());
+            //throw new IllegalAccessException("Failed to store file.", e);
+        }
+
+        Report entity = new Report();
+        entity.setTitle(file.getOriginalFilename());
+        entity.setFileName(file.getOriginalFilename());
+        Report saved = reportRepository.save(entity);
+        return Optional.of(reportDTOMapper.apply(saved));
     }
 
     @Override
@@ -83,17 +114,13 @@ public class ReportServiceImpl implements ReportService {
 
     public Page<ReportDTO> getList(Authentication authentication, Pageable pageable) {
         System.out.println("start -------------------");
-        User user = (User) authentication.getPrincipal();
-        System.out.println(user.getId());
-        System.out.println(user.getBranch().getSolId());
-        System.out.println(user.getRoles());
-        System.out.println(user.getBranch().getSolId());
-//        System.out.println(username);
-//        User user = userRepository.findByEmail(username)
-//                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-//        System.out.println(user);
 
-        List<Long> roleIds = user.getRoles().stream()
+        CustomUserPrincipal user = (CustomUserPrincipal) authentication.getPrincipal();
+
+        List<Role> roles = roleRepository.findByNameIn(user.getRolePermissions());
+        System.out.println(roles);
+
+        List<Long> roleIds = roles.stream()
                 .map(Role::getId)
                 .collect(Collectors.toList());
 
@@ -110,7 +137,10 @@ public class ReportServiceImpl implements ReportService {
 
         Report report = reportOpt.get();
         try {
-            InputStream reportStream = new ClassPathResource("reports/jrxml/"+report.getFileName()).getInputStream();
+            Path path = Paths.get("uploads/reports/jrxml", report.getFileName()).toAbsolutePath();
+            PathResource resource = new PathResource(path);
+            InputStream reportStream = resource.getInputStream();
+
             JasperDesign design = JRXmlLoader.load(reportStream);
             JRParameter[] parameters = design.getParameters();
 
@@ -118,7 +148,7 @@ public class ReportServiceImpl implements ReportService {
                 if (!param.isSystemDefined()) {
 
                     String javaType = param.getValueClassName();
-                    String inputType = mapJavaTypeToInputType(javaType);
+                    String inputType = Utils.mapJavaTypeToInputType(javaType);
                     String description = (param.getDescription() != null && !param.getDescription().isBlank())
                             ? param.getDescription()
                             : param.getName();
@@ -157,20 +187,26 @@ public class ReportServiceImpl implements ReportService {
         });
     }
 
-    public byte[] exportToFormat(Long id, String format, Map<String, Object> params) throws SQLException, JRException, IOException {
+    public String exportToFormat(Authentication authentication, Long id, String format, Map<String, Object> params) throws SQLException, JRException, IOException {
         Optional<Report> reportOpt = reportRepository.findById(id);
         if (reportOpt.isEmpty()) {
             throw new IllegalArgumentException("Report not found with id: " + id);
         }
+        CustomUserPrincipal maker = ((CustomUserPrincipal) authentication.getPrincipal());
+
+        String userFolder = maker.getName();
 
         Report report = reportOpt.get();
-        InputStream reportStream = new ClassPathResource("reports/jrxml/" + report.getFileName()).getInputStream();
+        String reportFileName = report.getFileName();
+        String generatedFileName = reportFileName.replace(".jrxml", "") + "_" + System.currentTimeMillis() + "." + format.toLowerCase();
+        Path path = Paths.get("uploads/reports/jrxml", report.getFileName()).toAbsolutePath();
+        PathResource resource = new PathResource(path);
+        InputStream reportStream = resource.getInputStream();
         JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
 
-        // 🔁 Convert parameters based on expected types
         Map<String, Object> convertedParams = new HashMap<>();
 
-        JasperDesign design = JRXmlLoader.load(new ClassPathResource("reports/jrxml/" + report.getFileName()).getInputStream());
+        JasperDesign design = JRXmlLoader.load(new PathResource("uploads/reports/jrxml/" + report.getFileName()).getInputStream());
         for (JRParameter jrParam : design.getParameters()) {
             if (!jrParam.isSystemDefined()) {
                 String paramName = jrParam.getName();
@@ -178,39 +214,24 @@ public class ReportServiceImpl implements ReportService {
 
                 if (params.containsKey(paramName)) {
                     String value = params.get(paramName).toString();
-                    Object converted = convertParamValue(value, paramType);
+                    Object converted = Utils.convertParamValue(value, paramType);
                     convertedParams.put(paramName, converted);
                 }
             }
         }
+        convertedParams.put("maker", maker.getName());
+        convertedParams.put("reportTitle", report.getTitle());
 
         try (Connection conn = dataSource.getConnection()) {
             JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, convertedParams, conn);
-            return Utils.exportToFormat(jasperPrint, format);
+
+            // Optionally save the file to disk (uncomment if needed)
+            Path userDir = Paths.get("generated_reports", userFolder); // Don't use src/main/resources
+            Files.createDirectories(userDir);
+            Path outputPath = userDir.resolve(generatedFileName);
+            byte[] data = Utils.exportToFormat(jasperPrint, format);
+            Files.write(outputPath, data);
+            return generatedFileName;
         }
-    }
-
-    private String mapJavaTypeToInputType(String javaType) {
-        return switch (javaType) {
-            case "java.lang.String" -> "text";
-            case "java.lang.Integer", "java.lang.Long", "java.math.BigDecimal", "java.lang.Double" -> "number";
-            case "java.util.Date", "java.sql.Date" -> "date";
-            case "java.sql.Timestamp" -> "datetime-local";
-            case "java.lang.Boolean" -> "checkbox";
-            default -> "text";
-        };
-    }
-
-    private Object convertParamValue(String value, Class<?> type) {
-        if (type == String.class) return value;
-        if (type == Integer.class || type == int.class) return Integer.parseInt(value);
-        if (type == Long.class || type == long.class) return Long.parseLong(value);
-        if (type == Double.class || type == double.class) return Double.parseDouble(value);
-        if (type == Boolean.class || type == boolean.class) return Boolean.parseBoolean(value);
-        if (type == java.util.Date.class) return java.sql.Date.valueOf(value); // expects yyyy-MM-dd
-        if (type == java.sql.Date.class) return java.sql.Date.valueOf(value); // expects yyyy-MM-dd
-        if (type == java.sql.Timestamp.class) return Timestamp.valueOf(value); // expects yyyy-MM-dd HH:mm:ss
-
-        throw new IllegalArgumentException("Unsupported parameter type: " + type.getName());
     }
 }

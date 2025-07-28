@@ -11,6 +11,8 @@ import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 
 import java.io.ByteArrayOutputStream;
+import java.sql.Timestamp;
+
 import org.springframework.http.MediaType;
 
 public class Utils {
@@ -69,5 +71,29 @@ public class Utils {
         }
 
         return outputStream.toByteArray();
+    }
+
+    public static String mapJavaTypeToInputType(String javaType) {
+        return switch (javaType) {
+            case "java.lang.String" -> "text";
+            case "java.lang.Integer", "java.lang.Long", "java.math.BigDecimal", "java.lang.Double" -> "number";
+            case "java.util.Date", "java.sql.Date" -> "date";
+            case "java.sql.Timestamp" -> "datetime-local";
+            case "java.lang.Boolean" -> "checkbox";
+            default -> "text";
+        };
+    }
+
+    public static Object convertParamValue(String value, Class<?> type) {
+        if (type == String.class) return value;
+        if (type == Integer.class || type == int.class) return Integer.parseInt(value);
+        if (type == Long.class || type == long.class) return Long.parseLong(value);
+        if (type == Double.class || type == double.class) return Double.parseDouble(value);
+        if (type == Boolean.class || type == boolean.class) return Boolean.parseBoolean(value);
+        if (type == java.util.Date.class) return java.sql.Date.valueOf(value); // expects yyyy-MM-dd
+        if (type == java.sql.Date.class) return java.sql.Date.valueOf(value); // expects yyyy-MM-dd
+        if (type == java.sql.Timestamp.class) return Timestamp.valueOf(value); // expects yyyy-MM-dd HH:mm:ss
+
+        throw new IllegalArgumentException("Unsupported parameter type: " + type.getName());
     }
 }
