@@ -1,5 +1,6 @@
 package com.sol.office_app.entity;
 
+import com.sol.office_app.enums.ReportStatus;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -21,22 +22,12 @@ public class ReportRequest {
     @Column(name = "run_in_background", nullable = false)
     private boolean runInBackground = false;
 
-    @Column(name = "schedule_cron_expression")
-    private String scheduleCronExpression;
+    @Enumerated(EnumType.STRING)
+    private ReportStatus status;
 
-    @Column(name = "last_run_time")
-    private LocalDateTime lastRunTime;
+    @Column(name = "started_at")
+    private LocalDateTime startedAt;
 
-    @Column(name = "next_run_time")
-    private LocalDateTime nextRunTime;
-
-    @Column(name = "status")
-    private String status; // consider using an enum if you want type safety
-    // e.g., 'PENDING', 'RUNNING', 'SUCCESS', 'FAILED'
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @Column(name = "finished_at")
+    private LocalDateTime finishedAt;
 }

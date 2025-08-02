@@ -17,6 +17,9 @@ public class ReportRolePermission {
     @JoinColumn(name = "role_id")
     private Role role;
 
+    @Column(name = "run_in_background", nullable = false)
+    private boolean runInBackground = false;
+
     private boolean canPrint;
 
     private boolean canDownload;

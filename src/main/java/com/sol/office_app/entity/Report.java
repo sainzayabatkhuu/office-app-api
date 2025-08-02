@@ -1,6 +1,5 @@
 package com.sol.office_app.entity;
 
-import com.sol.office_app.enums.RunLocation;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -23,9 +22,6 @@ public class Report {
         this.title = title;
     }
 
-    @Enumerated(EnumType.STRING)
-    private RunLocation runLocation;
-
     @OneToMany(mappedBy = "report", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReportRolePermission> rolePermissions;
 
@@ -43,14 +39,6 @@ public class Report {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
-    }
-
-    public RunLocation getRunLocation() {
-        return runLocation;
-    }
-
-    public void setRunLocation(RunLocation runLocation) {
-        this.runLocation = runLocation;
     }
 
     public List<ReportRolePermission> getRolePermissions() {

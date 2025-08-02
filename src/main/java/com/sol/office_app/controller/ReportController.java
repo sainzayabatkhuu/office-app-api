@@ -2,23 +2,20 @@ package com.sol.office_app.controller;
 
 import com.sol.office_app.common.Constant;
 import com.sol.office_app.dto.ReportDTO;
+import com.sol.office_app.service.NotifierService;
 import com.sol.office_app.service.ReportServiceImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.security.Principal;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.sol.office_app.util.Utils.getMediaTypeByFormat;
 
 @RestController
 @RequestMapping(Constant.REPORT_URL_PREFIX)
@@ -46,9 +43,10 @@ public class ReportController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ReportDTO> save(
+            @RequestParam("title") String title,
             @RequestParam("file") MultipartFile file
     ) {
-        Optional<ReportDTO> savedBranch = reportService.save(file);
+        Optional<ReportDTO> savedBranch = reportService.save(title, file);
         return savedBranch.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
@@ -91,7 +89,6 @@ public class ReportController {
             Authentication authentication
     ) throws Exception {
         String fileName = reportService.exportToFormat(authentication, id, format, params);
-
         return ResponseEntity.ok()
                 .body(fileName);
     }

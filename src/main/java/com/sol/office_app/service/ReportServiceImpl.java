@@ -39,18 +39,16 @@ public class ReportServiceImpl implements ReportService {
 
     @Autowired
     private DataSource dataSource;
-
     @Autowired
     private ReportDTOMapper reportDTOMapper;
-
     @Autowired
     private ReportRepository reportRepository;
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private RoleRepository roleRepository;
+    @Autowired
+    private NotifierService notifierService;
 
     @Override
     public Page<ReportDTO> findAll(Pageable pageable) {
@@ -74,7 +72,7 @@ public class ReportServiceImpl implements ReportService {
         return Optional.empty();
     }
 
-    public Optional<ReportDTO> save(MultipartFile file) {
+    public Optional<ReportDTO> save(String title, MultipartFile file) {
 
         try {
             Path path = Paths.get("uploads/reports/jrxml").toAbsolutePath();
@@ -96,7 +94,7 @@ public class ReportServiceImpl implements ReportService {
         }
 
         Report entity = new Report();
-        entity.setTitle(file.getOriginalFilename());
+        entity.setTitle(title);
         entity.setFileName(file.getOriginalFilename());
         Report saved = reportRepository.save(entity);
         return Optional.of(reportDTOMapper.apply(saved));
@@ -231,6 +229,8 @@ public class ReportServiceImpl implements ReportService {
             Path outputPath = userDir.resolve(generatedFileName);
             byte[] data = Utils.exportToFormat(jasperPrint, format);
             Files.write(outputPath, data);
+            //success, error, warning, regular The background report has been invoked.
+            notifierService.runNotifier("regular", "","Background report process was invoked and successfully completed.");
             return generatedFileName;
         }
     }
