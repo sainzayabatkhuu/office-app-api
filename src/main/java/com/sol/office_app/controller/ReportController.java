@@ -1,6 +1,7 @@
 package com.sol.office_app.controller;
 
 import com.sol.office_app.common.Constant;
+import com.sol.office_app.dto.NotificationMessage;
 import com.sol.office_app.dto.ReportDTO;
 import com.sol.office_app.service.NotifierService;
 import com.sol.office_app.service.ReportServiceImpl;
@@ -19,7 +20,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping(Constant.REPORT_URL_PREFIX)
-@CrossOrigin("*")
 public class ReportController {
 
     private final ReportServiceImpl reportService;
@@ -82,14 +82,14 @@ public class ReportController {
     }
 
     @GetMapping("/export")
-    public ResponseEntity<String> generatePdfReport(
+    public ResponseEntity<NotificationMessage> generatePdfReport(
             @RequestParam String format,
             @RequestParam Long id,
             @RequestParam Map<String, Object> params,
             Authentication authentication
     ) throws Exception {
-        String fileName = reportService.exportToFormat(authentication, id, format, params);
+        NotificationMessage result = reportService.exportToFormat(authentication, id, format, params);
         return ResponseEntity.ok()
-                .body(fileName);
+                .body(result);
     }
 }

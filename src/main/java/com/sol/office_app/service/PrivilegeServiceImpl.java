@@ -16,7 +16,6 @@ import java.util.Optional;
 public class PrivilegeServiceImpl implements PrivilegeService {
     @Autowired
     private PrivilegeDTOMapper privilegeDTOMapper;
-
     @Autowired
     private PrivilegeRepository privilegeRepository;
 

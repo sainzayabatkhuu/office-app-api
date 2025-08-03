@@ -18,11 +18,11 @@ public class ReportRolePermission {
     private Role role;
 
     @Column(name = "run_in_background", nullable = false)
-    private boolean runInBackground = false;
+    private Boolean runInBackground = false;
 
-    private boolean canPrint;
+    private Boolean canPrint;
 
-    private boolean canDownload;
+    private Boolean canDownload;
 
     public Long getId() {
         return id;

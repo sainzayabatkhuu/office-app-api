@@ -1,6 +1,7 @@
 package com.sol.office_app.service;
 
 import com.sol.office_app.config.CustomUserPrincipal;
+import com.sol.office_app.dto.NotificationMessage;
 import com.sol.office_app.dto.ReportDTO;
 import com.sol.office_app.dto.ReportParameterDTO;
 import com.sol.office_app.entity.Report;
@@ -185,53 +186,79 @@ public class ReportServiceImpl implements ReportService {
         });
     }
 
-    public String exportToFormat(Authentication authentication, Long id, String format, Map<String, Object> params) throws SQLException, JRException, IOException {
+    public NotificationMessage exportToFormat(
+            Authentication authentication,
+            Long id,
+            String format,
+            Map<String, Object> params
+    ) throws SQLException, JRException, IOException {
         Optional<Report> reportOpt = reportRepository.findById(id);
         if (reportOpt.isEmpty()) {
             throw new IllegalArgumentException("Report not found with id: " + id);
         }
-        CustomUserPrincipal maker = ((CustomUserPrincipal) authentication.getPrincipal());
 
-        String userFolder = maker.getName();
+        CustomUserPrincipal maker = (CustomUserPrincipal) authentication.getPrincipal();
+        if (maker.getRules().isEmpty()) {
+            throw new IllegalArgumentException("User has no access rules.");
+        }
 
         Report report = reportOpt.get();
+        if (report.getRolePermissions().isEmpty()) {
+            throw new IllegalArgumentException("Report has no role permissions.");
+        }
+        System.out.println(maker.getRolePermissions());
+        System.out.println(report.getRolePermissions());
+        boolean hasAccess = report.getRolePermissions().stream()
+                .anyMatch(rp -> maker.getRolePermissions().contains(rp.getRole().getName()));
+        if (!hasAccess) {
+            throw new IllegalArgumentException("You do not have permission to export this report.");
+        }
+
         String reportFileName = report.getFileName();
         String generatedFileName = reportFileName.replace(".jrxml", "") + "_" + System.currentTimeMillis() + "." + format.toLowerCase();
-        Path path = Paths.get("uploads/reports/jrxml", report.getFileName()).toAbsolutePath();
-        PathResource resource = new PathResource(path);
-        InputStream reportStream = resource.getInputStream();
-        JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
 
-        Map<String, Object> convertedParams = new HashMap<>();
+        Path path = Paths.get("uploads/reports/jrxml", reportFileName).toAbsolutePath();
+        try (InputStream reportStream = new PathResource(path).getInputStream()) {
+            JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
 
-        JasperDesign design = JRXmlLoader.load(new PathResource("uploads/reports/jrxml/" + report.getFileName()).getInputStream());
-        for (JRParameter jrParam : design.getParameters()) {
-            if (!jrParam.isSystemDefined()) {
-                String paramName = jrParam.getName();
-                Class<?> paramType = jrParam.getValueClass();
+            Map<String, Object> convertedParams = new HashMap<>();
+            JasperDesign design = JRXmlLoader.load(new PathResource("uploads/reports/jrxml/" + reportFileName).getInputStream());
 
-                if (params.containsKey(paramName)) {
-                    String value = params.get(paramName).toString();
-                    Object converted = Utils.convertParamValue(value, paramType);
-                    convertedParams.put(paramName, converted);
+            for (JRParameter jrParam : design.getParameters()) {
+                if (!jrParam.isSystemDefined()) {
+                    String paramName = jrParam.getName();
+                    Class<?> paramType = jrParam.getValueClass();
+
+                    if (params.containsKey(paramName)) {
+                        String value = params.get(paramName).toString();
+                        Object converted = Utils.convertParamValue(value, paramType);
+                        convertedParams.put(paramName, converted);
+                    }
                 }
             }
-        }
-        convertedParams.put("maker", maker.getName());
-        convertedParams.put("reportTitle", report.getTitle());
 
-        try (Connection conn = dataSource.getConnection()) {
-            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, convertedParams, conn);
+            convertedParams.put("maker", maker.getName());
+            convertedParams.put("reportTitle", report.getTitle());
 
-            // Optionally save the file to disk (uncomment if needed)
-            Path userDir = Paths.get("generated_reports", userFolder); // Don't use src/main/resources
-            Files.createDirectories(userDir);
-            Path outputPath = userDir.resolve(generatedFileName);
-            byte[] data = Utils.exportToFormat(jasperPrint, format);
-            Files.write(outputPath, data);
-            //success, error, warning, regular The background report has been invoked.
-            notifierService.runNotifier("regular", "","Background report process was invoked and successfully completed.");
-            return generatedFileName;
+            try (Connection conn = dataSource.getConnection()) {
+                JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, convertedParams, conn);
+
+                Path userDir = Paths.get("generated_reports", maker.getName());
+                Files.createDirectories(userDir);
+                Path outputPath = userDir.resolve(generatedFileName);
+
+                byte[] data = Utils.exportToFormat(jasperPrint, format);
+                Files.write(outputPath, data);
+
+                //notifierService.runNotifier("regular", "", "Background report process was invoked and successfully completed.");
+
+                return new NotificationMessage(
+                        "success",
+                        "Export Successful",
+                        "The report has been generated successfully.",
+                        Map.of("fileName", generatedFileName)
+                );
+            }
         }
     }
 }

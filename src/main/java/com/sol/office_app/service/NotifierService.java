@@ -14,7 +14,7 @@ public class NotifierService {
 
     public void runNotifier(String msgType, String title, String msgText) {
         // Notify frontend when done
-        NotificationMessage message = new NotificationMessage(msgType, "", msgText);
+        NotificationMessage message = new NotificationMessage(msgType, "", msgText, null);
         messagingTemplate.convertAndSend("/topic/notification", message);
     }
 }
