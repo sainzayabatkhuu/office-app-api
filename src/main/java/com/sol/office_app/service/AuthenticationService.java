@@ -1,8 +1,8 @@
 package com.sol.office_app.service;
 
 import com.sol.office_app.config.JwtUtils;
-import com.sol.office_app.dto.LoginDto;
-import com.sol.office_app.dto.LoginResponse;
+import com.sol.office_app.dto.request.LoginDto;
+import com.sol.office_app.dto.response.LoginResponse;
 import com.sol.office_app.entity.Role;
 import com.sol.office_app.entity.User;
 import com.sol.office_app.repository.RoleRepository;

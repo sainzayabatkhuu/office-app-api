@@ -1,8 +1,8 @@
 package com.sol.office_app.controller;
 
 import com.sol.office_app.common.Constant;
-import com.sol.office_app.dto.LoginDto;
-import com.sol.office_app.dto.LoginResponse;
+import com.sol.office_app.dto.request.LoginDto;
+import com.sol.office_app.dto.response.LoginResponse;
 import com.sol.office_app.service.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;

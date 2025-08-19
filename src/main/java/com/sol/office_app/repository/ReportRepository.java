@@ -19,4 +19,10 @@ public interface ReportRepository extends JpaRepository<Report, Long>{
     WHERE rp.role.id IN :roleIds
 """)
     Page<Report> findReportsByUserRoleIds(@Param("roleIds") List<Long> roleIds, Pageable pageable);
+
+    @Query("""
+    SELECT r FROM Report r
+    WHERE r.fileName = :fileName
+""")
+    Report finnByFileName(@Param("fileName") String filename);
 }

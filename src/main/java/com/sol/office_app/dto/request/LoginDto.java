@@ -1,4 +1,4 @@
-package com.sol.office_app.dto;
+package com.sol.office_app.dto.request;
 
 public record LoginDto(
         String username,

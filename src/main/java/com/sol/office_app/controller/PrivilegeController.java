@@ -48,10 +48,8 @@ public class PrivilegeController {
     }
 
     @DeleteMapping("/{id:\\d+}")
-    public ResponseEntity<PrivilegeDTO> delete(@PathVariable Long id, @RequestBody PrivilegeDTO privilegesDTO) {
-        Optional<PrivilegeDTO> updatedPrivilegeOpt = privilegeService.delete(id, privilegesDTO);
-        return updatedPrivilegeOpt
-                .map(privilegeDTO -> new ResponseEntity<>(privilegeDTO, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<PrivilegeDTO> delete(@PathVariable Long id) {
+        privilegeService.delete(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

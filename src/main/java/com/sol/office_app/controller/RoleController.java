@@ -48,11 +48,9 @@ public class RoleController {
     }
 
     @DeleteMapping("/{id:\\d+}")
-    public ResponseEntity<RoleDTO> delete(@PathVariable Long id, @RequestBody RoleDTO rulesDTO) {
-        Optional<RoleDTO> updatedRuleOpt = ruleService.delete(id, rulesDTO);
-        return updatedRuleOpt
-                .map(roleDTO -> new ResponseEntity<>(roleDTO, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<RoleDTO> delete(@PathVariable Long id) {
+        ruleService.delete(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }

@@ -48,10 +48,8 @@ public class SecurityRuleController {
     }
 
     @DeleteMapping("/{id:\\d+}")
-    public ResponseEntity<SecurityRuleDTO> delete(@PathVariable Long id, @RequestBody SecurityRuleDTO securityRuleDTO) {
-        Optional<SecurityRuleDTO> updatedSecurityRuleOpt = securityRuleService.delete(id, securityRuleDTO);
-        return updatedSecurityRuleOpt
-                .map(SecurityRuleDTO -> new ResponseEntity<>(SecurityRuleDTO, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<SecurityRuleDTO> delete(@PathVariable Long id) {
+        securityRuleService.delete(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

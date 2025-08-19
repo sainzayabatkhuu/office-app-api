@@ -4,8 +4,8 @@ import com.sol.office_app.common.Constant;
 import com.sol.office_app.config.SecurityRule;
 import com.sol.office_app.dto.ProfileDTO;
 import com.sol.office_app.dto.UserDTO;
+import com.sol.office_app.dto.UserRolesMappingDTO;
 import com.sol.office_app.service.UserService;
-import com.sol.office_app.service.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,7 +21,7 @@ import java.util.Optional;
 public class UserController {
 
     @Autowired
-    private UserServiceImpl userService;
+    private UserService userService;
 
     @GetMapping()
     @SecurityRule
@@ -57,11 +57,9 @@ public class UserController {
 
     @DeleteMapping("/{id:\\d+}")
     @SecurityRule
-    public ResponseEntity<UserDTO> delete(@PathVariable Long id, @RequestBody UserDTO user) {
-        Optional<UserDTO> updatedUserOpt = userService.delete(id, user);
-        return updatedUserOpt
-                .map(userDTO -> new ResponseEntity<>(userDTO, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<UserDTO> delete(@PathVariable Long id) {
+        userService.delete(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 //    @PostMapping("/me/refresh-token")
@@ -104,15 +102,15 @@ public class UserController {
 //        return ResponseEntity.ok(objLoginDetailsForUser);
 //    }
 
-//    @GetMapping("/user-role-mapping")
-//    public ResponseEntity<Page<UserRolesMappingDTO>> userRoleMapping(
-//            Principal principal,
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "10") int size,
-//            @RequestParam(defaultValue = "id,asc") String[] sort) {
-//        Page<UserRolesMappingDTO> userRolesMappings = userService.userRoleMapping(principal, PageRequest.of(page, size));
-//        return ResponseEntity.ok(userRolesMappings);
-//    }
+    @GetMapping("/user-role-mapping")
+    public ResponseEntity<Page<UserRolesMappingDTO>> userRoleMapping(
+            Principal principal,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id,asc") String[] sort) {
+        Page<UserRolesMappingDTO> userRolesMappings = userService.userRoleMapping(principal, PageRequest.of(page, size));
+        return ResponseEntity.ok(userRolesMappings);
+    }
 
 //    @GetMapping("/user-limits")
 //    public ResponseEntity<Profile> userLimits(Principal principal) {

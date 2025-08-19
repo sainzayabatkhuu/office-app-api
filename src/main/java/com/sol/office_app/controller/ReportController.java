@@ -3,8 +3,7 @@ package com.sol.office_app.controller;
 import com.sol.office_app.common.Constant;
 import com.sol.office_app.dto.NotificationMessage;
 import com.sol.office_app.dto.ReportDTO;
-import com.sol.office_app.service.NotifierService;
-import com.sol.office_app.service.ReportServiceImpl;
+import com.sol.office_app.service.ReportService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -22,9 +21,9 @@ import java.util.Optional;
 @RequestMapping(Constant.REPORT_URL_PREFIX)
 public class ReportController {
 
-    private final ReportServiceImpl reportService;
+    private final ReportService reportService;
 
-    public ReportController(ReportServiceImpl reportService) {
+    public ReportController(ReportService reportService) {
         this.reportService = reportService;
     }
 
@@ -51,20 +50,22 @@ public class ReportController {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    @PutMapping("/{id:\\d+}")
-    public ResponseEntity<ReportDTO> update(@PathVariable Long id, @RequestBody ReportDTO reportDTO) {
-        Optional<ReportDTO> updatedBranchOpt = reportService.update(id, reportDTO);
+    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ReportDTO> update(
+            @RequestParam("title") String title,
+            @RequestParam("name") String name,
+            @RequestParam(value = "file", required = false) MultipartFile file
+    ) {
+        Optional<ReportDTO> updatedBranchOpt = reportService.update(title, name, file);
         return updatedBranchOpt
                 .map(branchDTO -> new ResponseEntity<>(branchDTO, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("/{id:\\d+}")
-    public ResponseEntity<ReportDTO> delete(@PathVariable Long id, @RequestBody ReportDTO reportDTO) {
-        Optional<ReportDTO> updatedBranchOpt = reportService.delete(id, reportDTO);
-        return updatedBranchOpt
-                .map(branchDTO -> new ResponseEntity<>(branchDTO, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        reportService.delete(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping(value = "/report-list", produces = MediaType.APPLICATION_JSON_VALUE)

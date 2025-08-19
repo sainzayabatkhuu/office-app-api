@@ -1,6 +1,8 @@
 # Java & Spring Boot
 target/
 bin/
+generated_reports/
+uploads/
 *.log
 *.tmp
 *.bak
