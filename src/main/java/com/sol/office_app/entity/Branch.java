@@ -9,9 +9,25 @@ public class Branch {
     @Id
     private String solId;
 
+    @Column
     private String name;
+    @Column
     private String alternateBranchCode;
+    @Column
     private Boolean branchAvailable;
+
+    @Column
+    private String hostCode;
+    @Column
+    private String addressLine1;
+    @Column
+    private String addressLine2;
+    @Column
+    private String addressLine3;
+    @Column(name = "weekly_holiday_1")
+    private String weeklyHoliday1;
+    @Column(name = "weekly_holiday_2")
+    private String weeklyHoliday2;
 
     @ManyToOne
     private Branch parentBranch;

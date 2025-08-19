@@ -2,8 +2,66 @@ package com.sol.office_app.service;
 
 import com.sol.office_app.common.GeneralService;
 import com.sol.office_app.dto.BranchDTO;
+import com.sol.office_app.entity.Branch;
+import com.sol.office_app.mapper.BranchDTOMapper;
+import com.sol.office_app.repository.BranchRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
-public interface BranchService extends GeneralService<BranchDTO, String> {
+import java.util.Optional;
 
+@Service
+public class BranchService implements GeneralService<BranchDTO, String> {
+    @Autowired
+    private BranchDTOMapper branchDTOMapper;
+
+    @Autowired
+    private BranchRepository branchRepository;
+
+    @Override
+    public Page<BranchDTO> findAll(Pageable pageable) {
+        Page<Branch> branches = branchRepository.findAll(pageable);
+        return branches.map(branchDTOMapper);
+    }
+
+    @Override
+    public Page<BranchDTO> search(String query, Pageable pageable) {
+        return null;
+    }
+
+    @Override
+    public Optional<BranchDTO> get(String id) {
+        return branchRepository.findById(id).map(branchDTOMapper);
+    }
+
+    @Override
+    public Optional<BranchDTO> save(BranchDTO entity) {
+        Branch branch = new Branch();
+        branch.setName(entity.name());
+        branch.setAlternateBranchCode(entity.alternateBranchCode());
+        branch.setBranchAvailable(entity.branchAvailable());
+        branch = branchRepository.save(branch);
+        return Optional.of(branchDTOMapper.apply(branch));
+    }
+
+    @Override
+    public Optional<BranchDTO> update(String id, BranchDTO entity) {
+        Optional<Branch> branch = branchRepository.findById(id);
+        if (branch.isPresent()) {
+            Branch existingBranch = branch.get();
+            existingBranch.setName(entity.name());
+            existingBranch.setAlternateBranchCode(entity.alternateBranchCode());
+            existingBranch.setBranchAvailable(entity.branchAvailable());
+            existingBranch = branchRepository.save(existingBranch);
+            return Optional.of(branchDTOMapper.apply(existingBranch));
+        } else {
+            return Optional.empty();
+        }
+    }
+    @Override
+    public void delete(String id) {
+        branchRepository.deleteById(id);
+    }
 }
-

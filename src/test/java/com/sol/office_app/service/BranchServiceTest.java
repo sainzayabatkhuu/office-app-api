@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
-class BranchServiceImplTest {
+class BranchServiceTest {
 
     @Mock
     private BranchRepository branchRepository;
@@ -33,7 +33,7 @@ class BranchServiceImplTest {
     private BranchDTOMapper branchDTOMapper;
 
     @InjectMocks
-    private BranchServiceImpl branchService;
+    private BranchService branchService;
 
     @Test
     void testFindAll() {
@@ -126,27 +126,16 @@ class BranchServiceImplTest {
 
     @Test
     void testDelete_Found() {
-        Branch branch = new Branch();
-        branch.setSolId("321");
-        branch.setName("DeleteMe");
 
-        BranchDTO dto = new BranchDTO("321", "DeleteMe", "B004", true);
-
-        when(branchRepository.findById("321")).thenReturn(Optional.of(branch));
         doNothing().when(branchRepository).deleteById("321");
-        when(branchDTOMapper.apply(branch)).thenReturn(dto);
 
-        Optional<BranchDTO> result = branchService.delete("321", dto);
-        assertTrue(result.isPresent());
-        assertEquals("DeleteMe", result.get().name());
+        branchService.delete("321");
     }
 
     @Test
     void testDelete_NotFound() {
         when(branchRepository.findById("321")).thenReturn(Optional.empty());
-        BranchDTO dummy = new BranchDTO("321", "DoesNotExist", "B000", false);
 
-        Optional<BranchDTO> result = branchService.delete("321", dummy);
-        assertTrue(result.isEmpty());
+        branchService.delete("321");
     }
 }

@@ -16,5 +16,5 @@ public interface GeneralService<T, ID> {
 
     Optional<T> update(ID id, T entity);
 
-    Optional<T> delete(ID id, T entity);
+    void delete(ID id);
 }

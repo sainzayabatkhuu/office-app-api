@@ -48,10 +48,8 @@ public class CustomerController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<CustomerDTO> delete(@PathVariable Long id, @RequestBody CustomerDTO customerDTO) {
-        Optional<CustomerDTO> updatedUserOpt = customerService.delete(id, customerDTO);
-        return updatedUserOpt
-                .map(userDTO -> new ResponseEntity<>(userDTO, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<CustomerDTO> delete(@PathVariable Long id) {
+        customerService.delete(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
