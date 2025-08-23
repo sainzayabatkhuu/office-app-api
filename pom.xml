@@ -59,14 +59,20 @@
 		<dependency>
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>
-			<version>6.20.5</version>
+			<version>6.21.0</version>
 		</dependency>
 
 		<!-- JasperReports Font Extension -->
 		<dependency>
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports-fonts</artifactId>
-			<version>6.20.5</version>
+			<version>6.21.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.oopsAF</groupId>
+			<artifactId>jasper-fonts</artifactId>
+			<version>1.0</version>
 		</dependency>
 
 		<!-- PDF export -->
