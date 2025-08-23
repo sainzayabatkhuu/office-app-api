@@ -74,9 +74,10 @@ public class CoreParameterService implements GeneralService<CoreParameterRespons
         }
 
         return repository.findAll(spec, pageable).map(entity -> new CoreParameterResponse(
-                entity.getParamCode(),
-                entity.getParamName(),
-                entity.getDelFlg()
+            entity.getParamType(),
+            entity.getParamCode(),
+            entity.getParamName(),
+            entity.getDelFlg()
         ));
     }
 }
