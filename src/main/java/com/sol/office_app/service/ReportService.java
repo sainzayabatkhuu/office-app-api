@@ -1,24 +1,32 @@
 package com.sol.office_app.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sol.office_app.common.GeneralService;
 import com.sol.office_app.config.CustomUserPrincipal;
 import com.sol.office_app.dto.NotificationMessage;
 import com.sol.office_app.dto.ReportDTO;
 import com.sol.office_app.dto.ReportParameterDTO;
-import com.sol.office_app.entity.Report;
-import com.sol.office_app.entity.Role;
+import com.sol.office_app.entity.*;
+import com.sol.office_app.enums.ReportStatus;
 import com.sol.office_app.mapper.ReportDTOMapper;
+import com.sol.office_app.repository.ReportHistoryRepository;
 import com.sol.office_app.repository.ReportRepository;
 import com.sol.office_app.repository.RoleRepository;
 import com.sol.office_app.repository.UserRepository;
 import com.sol.office_app.util.Utils;
 import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.design.JRDesignSubreport;
 import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.util.JRLoader;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.PathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,9 +38,12 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.Principal;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,9 +58,17 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    private ReportHistoryRepository reportHistoryRepository;
+    @Autowired
     private RoleRepository roleRepository;
     @Autowired
     private NotifierService notifierService;
+
+    @Value("${report.subreport.dir}")
+    private String subreportDir;
+
+    @Value("${report.output.dir}")
+    private String outputDir;
 
     @Override
     public Page<ReportDTO> findAll(Pageable pageable) {
@@ -70,11 +89,13 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
 
     @Override
     public Optional<ReportDTO> save(ReportDTO dto) {
+
         return Optional.empty();
     }
 
     @Override
     public Optional<ReportDTO> update(Long aLong, ReportDTO entity) {
+
         return Optional.empty();
     }
 
@@ -83,7 +104,7 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
         Report entity = new Report();
         if(!file.isEmpty()) {
             try {
-                Path path = Paths.get("uploads/reports/jrxml").toAbsolutePath();
+                Path path = Paths.get(subreportDir).toAbsolutePath();
                 PathResource resource = new PathResource(path);
                 File reportsDir = resource.getFile();
 
@@ -110,7 +131,7 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
         Report entity = reportRepository.finnByFileName(name);
         if (file != null && !file.isEmpty()) {
             try {
-                Path path = Paths.get("uploads/reports/jrxml").toAbsolutePath();
+                Path path = Paths.get(subreportDir).toAbsolutePath();
                 PathResource resource = new PathResource(path);
                 File reportsDir = resource.getFile();
 
@@ -162,7 +183,7 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
 
         Report report = reportOpt.get();
         try {
-            Path path = Paths.get("uploads/reports/jrxml", report.getFileName()).toAbsolutePath();
+            Path path = Paths.get("uploads/reports/jrxml/", report.getFileName()).toAbsolutePath();
             PathResource resource = new PathResource(path);
             InputStream reportStream = resource.getInputStream();
 
@@ -217,66 +238,69 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
             Long id,
             String format,
             Map<String, Object> params
-    ) throws SQLException, JRException, IOException {
-        Optional<Report> reportOpt = reportRepository.findById(id);
-        if (reportOpt.isEmpty()) {
-            throw new IllegalArgumentException("Report not found with id: " + id);
-        }
+    ) throws Exception {
+
+        // Step 1: Validate Report & User
+        Report report = reportRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Report not found with id: " + id));
 
         CustomUserPrincipal maker = (CustomUserPrincipal) authentication.getPrincipal();
-        if (maker.getRules().isEmpty()) {
-            throw new IllegalArgumentException("User has no access rules.");
-        }
+        Utils.validateUserAccess(maker, report);
 
-        Report report = reportOpt.get();
-        if (report.getRolePermissions().isEmpty()) {
-            throw new IllegalArgumentException("Report has no role permissions.");
-        }
-        System.out.println(maker.getRolePermissions());
-        System.out.println(report.getRolePermissions());
-        boolean hasAccess = report.getRolePermissions().stream()
-                .anyMatch(rp -> maker.getRolePermissions().contains(rp.getRole().getName()));
-        if (!hasAccess) {
-            throw new IllegalArgumentException("You do not have permission to export this report.");
-        }
-
+        // Step 2: Prepare Report File Names
         String reportFileName = report.getFileName();
-        String generatedFileName = reportFileName.replace(".jrxml", "") + "_" + System.currentTimeMillis() + "." + format.toLowerCase();
+        String generatedFileName = Utils.generateFileName(reportFileName, format);
+        Path jrxmlPath = Paths.get(subreportDir, reportFileName).toAbsolutePath();
+        Path jasperPath = jrxmlPath.resolveSibling(reportFileName.replace(".jrxml", ".jasper"));
 
-        Path path = Paths.get("uploads/reports/jrxml", reportFileName).toAbsolutePath();
-        try (InputStream reportStream = new PathResource(path).getInputStream()) {
-            JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
+        // Step 3: Initialize Report History
+        //ReportHistory history = createReportHistory(report, maker);
 
-            Map<String, Object> convertedParams = new HashMap<>();
-            JasperDesign design = JRXmlLoader.load(new PathResource("uploads/reports/jrxml/" + reportFileName).getInputStream());
+        ReportHistory finalHistory = new ReportHistory();
+        finalHistory.setBranchCode("000");
+        finalHistory.setReportFileName(report.getFileName());
+        finalHistory.setReportTitleName(report.getTitle());
+        finalHistory.setStatus(ReportStatus.PROCESSING);
+        finalHistory.setStartedAt(LocalDateTime.now());
+        report.getRolePermissions().stream()
+                .filter(rp -> maker.getRolePermissions().contains(rp.getRole().getName()))
+                .findFirst()
+                .ifPresent(rp -> finalHistory.setRunInBackground(rp.getRunInBackground()));
 
-            for (JRParameter jrParam : design.getParameters()) {
-                if (!jrParam.isSystemDefined()) {
-                    String paramName = jrParam.getName();
-                    Class<?> paramType = jrParam.getValueClass();
+        reportHistoryRepository.save(finalHistory);
 
-                    if (params.containsKey(paramName)) {
-                        String value = params.get(paramName).toString();
-                        Object converted = Utils.convertParamValue(value, paramType);
-                        convertedParams.put(paramName, converted);
-                    }
-                }
-            }
+        try (InputStream reportStream = new PathResource(jrxmlPath).getInputStream()) {
 
-            convertedParams.put("maker", maker.getName());
-            convertedParams.put("reportTitle", report.getTitle());
+            // Step 4: Compile Report & Subreports
+            Utils.compileSubreports(jrxmlPath);
+            JasperCompileManager.compileReportToFile(jrxmlPath.toString(), jasperPath.toString());
 
-            try (Connection conn = dataSource.getConnection()) {
+            JasperReport jasperReport = (JasperReport) JRLoader.loadObjectFromFile(jasperPath.toString());
+
+            // Step 5: Prepare Parameters
+            Map<String, Object> convertedParams = Utils.prepareParameters(report, maker, params);
+
+            Connection conn = dataSource.getConnection();
+            convertedParams.put("REPORT_CONNECTION", conn);
+            convertedParams.put("SUBREPORT_DIR", subreportDir);
+            // -----------------------------
+            // Step 6: Export file
+            // -----------------------------
+            String runInBackground = "B"; // "Virtual" | "Background"
+
+            if(runInBackground.equals("V")) {
+
                 JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, convertedParams, conn);
+                finalHistory.setReportOutputFile(generatedFileName);
+                finalHistory.setFinishedAt(LocalDateTime.now());
+                reportHistoryRepository.save(finalHistory);
 
-                Path userDir = Paths.get("generated_reports", maker.getName());
+                Path userDir = Paths.get(outputDir, maker.getName());
                 Files.createDirectories(userDir);
                 Path outputPath = userDir.resolve(generatedFileName);
-
                 byte[] data = Utils.exportToFormat(jasperPrint, format);
                 Files.write(outputPath, data);
 
-                //notifierService.runNotifier("regular", "", "Background report process was invoked and successfully completed.");
 
                 return new NotificationMessage(
                         "success",
@@ -284,7 +308,45 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
                         "The report has been generated successfully.",
                         Map.of("fileName", generatedFileName)
                 );
+            } else {
+                //calling CompletableFuture
+
+                CompletableFuture.runAsync(() -> {
+                    try {
+
+                        // Wait for 1 minute before starting the background export
+                        Thread.sleep(60 * 1000);
+
+
+                        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, convertedParams, conn);
+                        finalHistory.setStatus(ReportStatus.SUCCESS);
+                        finalHistory.setReportOutputFile(generatedFileName);
+                        finalHistory.setFinishedAt(LocalDateTime.now());
+                        reportHistoryRepository.save(finalHistory);
+
+                        Path userDir = Paths.get(outputDir, maker.getName()).toAbsolutePath();
+                        Files.createDirectories(userDir);
+                        Path outputPath = userDir.resolve(generatedFileName);
+                        byte[] data = Utils.exportToFormat(jasperPrint, format);
+                        Files.write(outputPath, data);
+
+                        notifierService.runNotifier("regular", "", "Background report process was invoked and successfully completed.");
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+
+
+                return new NotificationMessage(
+                        "success",
+                        "Export Scheduled",
+                        "The report export has been scheduled in the background.",
+                        Map.of()
+                );
             }
+        } finally {
+            //reportHistoryRepository.save(history);
         }
     }
 }

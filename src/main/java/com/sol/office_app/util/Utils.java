@@ -1,18 +1,34 @@
 package com.sol.office_app.util;
 
+import com.sol.office_app.config.CustomUserPrincipal;
+import com.sol.office_app.entity.Report;
 import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRParameter;
+import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.design.JRDesignSubreport;
+import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.export.JRPdfExporter;
 import net.sf.jasperreports.engine.export.oasis.JROdtExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRDocxExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRPptxExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
+import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
+import org.springframework.core.io.PathResource;
 import org.springframework.http.MediaType;
 
 public class Utils {
@@ -95,5 +111,83 @@ public class Utils {
         if (type == java.sql.Timestamp.class) return Timestamp.valueOf(value); // expects yyyy-MM-dd HH:mm:ss
 
         throw new IllegalArgumentException("Unsupported parameter type: " + type.getName());
+    }
+
+    public static void validateUserAccess(CustomUserPrincipal maker, Report report) {
+        if (maker.getRules().isEmpty()) {
+            throw new IllegalArgumentException("User has no access rules.");
+        }
+        if (report.getRolePermissions().isEmpty()) {
+            throw new IllegalArgumentException("Report has no role permissions.");
+        }
+
+        boolean hasAccess = report.getRolePermissions().stream()
+                .anyMatch(rp -> maker.getRolePermissions().contains(rp.getRole().getName()));
+
+        if (!hasAccess) {
+            throw new IllegalArgumentException("You do not have permission to export this report.");
+        }
+    }
+
+    public static String generateFileName(String reportFileName, String format) {
+        return reportFileName.replace(".jrxml", "") + "_" +
+                System.currentTimeMillis() + "." + format.toLowerCase();
+    }
+
+    public static void compileSubreports(Path mainJrxmlPath) throws IOException, JRException {
+        JasperDesign design = JRXmlLoader.load(new PathResource(mainJrxmlPath.toString()).getInputStream());
+
+        Arrays.stream(design.getAllBands())
+                .filter(Objects::nonNull)
+                .forEach(band -> {
+                    if (band.getChildren() != null) {
+                        band.getChildren().forEach(el -> {
+                            if (el instanceof JRDesignSubreport sub && sub.getExpression() != null) {
+                                String subFile = extractSubreportFileName(sub.getExpression().getText());
+                                if (subFile.endsWith(".jasper")) {
+                                    String subJrxml = subFile.replace(".jasper", ".jrxml");
+                                    Path subJrxmlPath = Paths.get(subJrxml).toAbsolutePath();
+                                    Path subJasperPath = Paths.get(subFile).toAbsolutePath();
+
+                                    if (Files.exists(subJrxmlPath)) {
+                                        try {
+                                            JasperCompileManager.compileReportToFile(
+                                                    subJrxmlPath.toString(), subJasperPath.toString());
+                                        } catch (JRException e) {
+                                            throw new RuntimeException("Failed to compile subreport: " + subFile, e);
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+    }
+
+    public static String extractSubreportFileName(String expressionText) {
+        String subreportFile = expressionText.replace("\"", "");
+        java.util.regex.Matcher matcher =
+                java.util.regex.Pattern.compile("([^\"]+\\.jasper)").matcher(subreportFile);
+
+        return matcher.find() ? matcher.group(1) : subreportFile;
+    }
+
+    public static Map<String, Object> prepareParameters(Report report, CustomUserPrincipal maker, Map<String, Object> params) throws JRException, IOException {
+        Map<String, Object> convertedParams = new HashMap<>();
+        JasperDesign design = JRXmlLoader.load(
+                new PathResource("uploads/reports/jrxml/" + report.getFileName()).getInputStream());
+
+        for (JRParameter jrParam : design.getParameters()) {
+            if (!jrParam.isSystemDefined() && params.containsKey(jrParam.getName())) {
+                String value = params.get(jrParam.getName()).toString();
+                Object converted = Utils.convertParamValue(value, jrParam.getValueClass());
+                convertedParams.put(jrParam.getName(), converted);
+            }
+        }
+
+        convertedParams.put("maker", maker.getName());
+        convertedParams.put("reportTitle", report.getTitle());
+
+        return convertedParams;
     }
 }

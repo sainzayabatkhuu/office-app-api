@@ -4,7 +4,7 @@ public record ReportRolePermissionDTO(
         Long id,
 
         RoleDTO role,
-        boolean canPrint,
-        boolean canDownload
+        String canPrint,
+        String canDownload
 ) {
 }

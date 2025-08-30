@@ -14,6 +14,7 @@ public class UserDTOMapper implements Function<User, UserDTO> {
         UserDTO obj = new UserDTO();
         obj.setId(user.getId());
         obj.setEmail(user.getEmail());
+        obj.setUsername(user.getUsername());
         obj.setFirstname(user.getFirstname());
         obj.setLastname(user.getLastname());
 
