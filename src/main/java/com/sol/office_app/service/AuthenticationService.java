@@ -51,7 +51,7 @@ public class AuthenticationService {
 //
     public LoginResponse authenticate(HttpServletRequest req, LoginDto input) {
 
-        User user = userRepository.findByEmail(input.username())
+        User user = userRepository.findByUsername(input.username())
                 .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
         try {
             // update font-size and theme name

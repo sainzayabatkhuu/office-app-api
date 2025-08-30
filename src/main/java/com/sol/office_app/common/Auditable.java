@@ -1,7 +1,7 @@
 package com.sol.office_app.common;
 
-import com.sol.office_app.entity.User;
 import jakarta.persistence.*;
+import lombok.Data;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -20,18 +20,14 @@ public abstract class Auditable {
     @CreatedDate
     private LocalDateTime createdDate;
 
-    @ManyToOne
-    @JoinColumn(name = "created_by")
     @CreatedBy
-    private User createdBy;
+    private String createdBy;
 
     @LastModifiedDate
     private LocalDateTime lastModifiedDate;
 
-    @ManyToOne
-    @JoinColumn(name = "last_modified_by")
     @LastModifiedBy
-    private User lastModifiedBy;
+    private String lastModifiedBy;
 
     public int getModifiedCount() {
         return modifiedCount;
@@ -49,11 +45,11 @@ public abstract class Auditable {
         this.createdDate = createdDate;
     }
 
-    public User getCreatedBy() {
+    public String getCreatedBy() {
         return createdBy;
     }
 
-    public void setCreatedBy(User createdBy) {
+    public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
     }
 
@@ -65,11 +61,11 @@ public abstract class Auditable {
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public User getLastModifiedBy() {
+    public String getLastModifiedBy() {
         return lastModifiedBy;
     }
 
-    public void setLastModifiedBy(User lastModifiedBy) {
+    public void setLastModifiedBy(String lastModifiedBy) {
         this.lastModifiedBy = lastModifiedBy;
     }
 }
