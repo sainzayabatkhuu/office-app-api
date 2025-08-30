@@ -18,11 +18,11 @@ public class ReportRolePermission {
     private Role role;
 
     @Column(name = "run_in_background", nullable = false)
-    private Boolean runInBackground = false;
+    private String runInBackground;  // Values: "VIRTUAL", "BACKGROUND"
 
-    private Boolean canPrint;
+    private String canPrint;
 
-    private Boolean canDownload;
+    private String canDownload;
 
     public Long getId() {
         return id;
@@ -48,19 +48,27 @@ public class ReportRolePermission {
         this.role = role;
     }
 
-    public boolean isCanPrint() {
+    public String isCanPrint() {
         return canPrint;
     }
 
-    public void setCanPrint(boolean canPrint) {
+    public void setCanPrint(String canPrint) {
         this.canPrint = canPrint;
     }
 
-    public boolean isCanDownload() {
+    public String isCanDownload() {
         return canDownload;
     }
 
-    public void setCanDownload(boolean canDownload) {
+    public void setCanDownload(String canDownload) {
         this.canDownload = canDownload;
+    }
+
+    public String getRunInBackground() {
+        return runInBackground;
+    }
+
+    public void setRunInBackground(String runInBackground) {
+        this.runInBackground = runInBackground;
     }
 }

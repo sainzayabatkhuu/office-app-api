@@ -208,7 +208,7 @@ public class UserService implements GeneralService<UserDTO, Long> {
     }
 
     public Page<BranchDTO> allowedBranches(Principal principal, Pageable pageable) {
-        Optional<User> user = userRepository.findByEmail(principal.getName());
+        Optional<User> user = userRepository.findByUsername(principal.getName());
         if(user.isPresent()) {
             List<Branch> branches = branchRepository.findByUsername(principal.getName());
             List<BranchDTO> branchDTOs = branches.stream()
