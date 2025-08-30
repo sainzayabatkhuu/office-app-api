@@ -1,6 +1,5 @@
 package com.sol.office_app.entity;
 
-import com.sol.office_app.common.Auditable;
 import jakarta.persistence.*;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.SoftDelete;
@@ -10,7 +9,7 @@ import org.hibernate.type.YesNoConverter;
 
 @Entity
 @SoftDelete
-public class CoreParameter extends Auditable {
+public class CoreParameter {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

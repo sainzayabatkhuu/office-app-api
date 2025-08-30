@@ -31,18 +31,45 @@ public class CoreParameterService implements GeneralService<CoreParameterRespons
     }
 
     @Override
-    public Optional<CoreParameterResponse> get(Long aLong) {
-        return Optional.empty();
+    public Optional<CoreParameterResponse> get(Long id) {
+        Optional<CoreParameter> coreParameter = repository.findById(id);
+        return coreParameter.map(entity -> new CoreParameterResponse(
+                entity.getId(),
+                entity.getParamType(),
+                entity.getParamCode(),
+                entity.getParamName(),
+                entity.getDelFlg()
+        ));
     }
 
     @Override
     public Optional<CoreParameterResponse> save(CoreParameterResponse entity) {
+        CoreParameter coreParameter = new CoreParameter();
+        coreParameter.setParamName(entity.name());
+        coreParameter.setParamCode(entity.code());
+        coreParameter.setParamType(entity.type());
+        coreParameter.setDelFlg("N");
         return Optional.empty();
     }
 
     @Override
-    public Optional<CoreParameterResponse> update(Long aLong, CoreParameterResponse entity) {
-        return Optional.empty();
+    public Optional<CoreParameterResponse> update(Long id, CoreParameterResponse entity) {
+        Optional<CoreParameter> coreParameter = repository.findById(id);
+        if(coreParameter.isPresent()) {
+            coreParameter.get().setParamName(entity.name());
+            coreParameter.get().setParamCode(entity.code());
+            coreParameter.get().setParamType(entity.type());
+            repository.save(coreParameter.get());
+            return Optional.of(new CoreParameterResponse(
+                    coreParameter.get().getId(),
+                    coreParameter.get().getParamType(),
+                    coreParameter.get().getParamCode(),
+                    coreParameter.get().getParamName(),
+                    coreParameter.get().getDelFlg()
+            ));
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -74,10 +101,11 @@ public class CoreParameterService implements GeneralService<CoreParameterRespons
         }
 
         return repository.findAll(spec, pageable).map(entity -> new CoreParameterResponse(
-            entity.getParamType(),
-            entity.getParamCode(),
-            entity.getParamName(),
-            entity.getDelFlg()
+                entity.getId(),
+                entity.getParamType(),
+                entity.getParamCode(),
+                entity.getParamName(),
+                entity.getDelFlg()
         ));
     }
 }

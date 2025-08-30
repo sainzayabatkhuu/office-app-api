@@ -10,5 +10,6 @@ public class Constant {
     public static final String BRANCH_URL_PREFIX = API_URL_v1_PREFIX + "/branches";
     public static final String CUSTOMER_URL_PREFIX = API_URL_v1_PREFIX + "/customers";
     public static final String REPORT_URL_PREFIX = API_URL_v1_PREFIX + "/reports";
+    public static final String REPORT_HISTORY_URL_PREFIX = API_URL_v1_PREFIX + "/report-histories";
     public static final String CORE_PARAM_URL_PREFIX = API_URL_v1_PREFIX + "/core-parameters";
 }
