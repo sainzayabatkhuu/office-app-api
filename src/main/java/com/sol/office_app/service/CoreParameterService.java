@@ -49,7 +49,14 @@ public class CoreParameterService implements GeneralService<CoreParameterRespons
         coreParameter.setParamCode(entity.code());
         coreParameter.setParamType(entity.type());
         coreParameter.setDelFlg("N");
-        return Optional.empty();
+        coreParameter = repository.save(coreParameter);
+        return Optional.of(new CoreParameterResponse(
+                coreParameter.getId(),
+                coreParameter.getParamType(),
+                coreParameter.getParamCode(),
+                coreParameter.getParamName(),
+                coreParameter.getDelFlg()
+        ));
     }
 
     @Override
