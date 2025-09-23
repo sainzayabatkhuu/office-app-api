@@ -1,5 +1,7 @@
 package com.sol.office_app.dto;
 
+import java.time.LocalDate;
+
 public record ProfileDTO(
         String username,
         String first_name,
@@ -16,6 +18,8 @@ public record ProfileDTO(
         boolean multi_brnch_access,
         String branch_code,
         String user_language,
-        Number expiration_time
+        Number expiration_time,
+        LocalDate lastPasswordChangeDate,
+        boolean forcePasswordChange
 ) {
 }

@@ -317,7 +317,6 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
                         // Wait for 1 minute before starting the background export
                         Thread.sleep(60 * 1000);
 
-
                         JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, convertedParams, conn);
                         finalHistory.setStatus(ReportStatus.SUCCESS);
                         finalHistory.setReportOutputFile(generatedFileName);

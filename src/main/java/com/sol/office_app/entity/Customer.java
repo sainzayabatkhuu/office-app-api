@@ -2,28 +2,35 @@ package com.sol.office_app.entity;
 
 import com.sol.office_app.enums.CustomerType;
 import jakarta.persistence.*;
+import lombok.Data;
 
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@Data
 @Entity
 public class Customer {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     // Identification
-    private CustomerType customerType; // Should ideally use enum: Individual, Corporate, Bank
+    @Enumerated(EnumType.STRING)
+    private CustomerType customerType; // Should ideally use enum: Individual-R, Corporate-C, Bank-B
+    @Column(length = 9, unique = true, nullable = false)
     private String customerNumber; // CIF Number (max 9 alphanumeric chars)
-    private Boolean specialCustomerNumber; // true if special number is generated
-    private Boolean crmCustomer; // true if created from Siebel CRM
-
+    private String specialCustomerNumber; // true if special number is generated
+    private String crmCustomer; // true if created from Siebel CRM
     // Names
     private String fullName;
     private String shortName; // Optional abbreviated name
-
-    // Organization Info
-    @ManyToOne
-    private Branch branchCode; // Code of the branch maintaining the customer
+    private String branchCode; // Code of the branch maintaining the customer
     private String customerCategory; // From Customer Category Maintenance
-
     // Flags
-    private Boolean isPrivateCustomer;
+    private String isPrivateCustomer;
+
+    /** Generate ID before persisting */
+    @PrePersist
+    private void generateId() {
+        if (id == null && customerType != null && customerNumber != null) {
+            this.id = customerType.name().charAt(0) + customerNumber;
+        }
+    }
 }
