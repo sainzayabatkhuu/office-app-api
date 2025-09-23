@@ -2,6 +2,7 @@ package com.sol.office_app.controller;
 
 import com.sol.office_app.common.Constant;
 import com.sol.office_app.config.SecurityRule;
+import com.sol.office_app.dto.NotificationMessage;
 import com.sol.office_app.dto.ProfileDTO;
 import com.sol.office_app.dto.UserDTO;
 import com.sol.office_app.dto.UserRolesMappingDTO;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -90,11 +92,18 @@ public class UserController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-//    @PutMapping("/change-password")
-//    public ResponseEntity<?> loginHistory(Principal principal, @RequestBody ChangePasswordDTO changePasswordDTO) {
-//        Optional<ChangePasswordDTO> changePassword = userService.changePassword(principal, changePasswordDTO);
-//        return ResponseEntity.ok(changePassword);
-//    }
+    @PutMapping("/change-password")
+    public ResponseEntity<?> loginHistory(
+            Principal principal,
+            @RequestBody Map<String, String> body
+    ) {
+        Optional<NotificationMessage> changePassword = userService.changePassword(
+                principal,
+                body.get("currentPassword"),
+                body.get("password"),
+                body.get("confirmPassword"));
+        return ResponseEntity.ok(changePassword);
+    }
 
 //    @GetMapping("/login-history")
 //    public ResponseEntity<?> loginHistory(Principal principal) {

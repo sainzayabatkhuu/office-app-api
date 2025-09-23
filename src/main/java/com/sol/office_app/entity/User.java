@@ -10,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -32,6 +33,9 @@ public class User extends Auditable implements UserDetails {
     @Column(nullable = false)
     private String password;
     private boolean enabled;
+
+    // Track last password change
+    private LocalDate lastPasswordChangeDate;
 
     @ManyToMany(cascade=CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
@@ -341,5 +345,13 @@ public class User extends Auditable implements UserDetails {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public LocalDate getLastPasswordChangeDate() {
+        return lastPasswordChangeDate;
+    }
+
+    public void setLastPasswordChangeDate(LocalDate lastPasswordChangeDate) {
+        this.lastPasswordChangeDate = lastPasswordChangeDate;
     }
 }

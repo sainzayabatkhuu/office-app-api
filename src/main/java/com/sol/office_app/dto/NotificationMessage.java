@@ -14,6 +14,6 @@ import java.util.Map;
 public class NotificationMessage {
     private String type;
     private String title;
-    private  String message;
+    private String message;
     private Map<String, String> data;
 }
