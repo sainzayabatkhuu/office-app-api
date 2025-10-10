@@ -23,9 +23,9 @@ public class ReportRolePermissionDTOMapper implements Function<ReportRolePermiss
 
         return new ReportRolePermissionDTO(
                 role.getId(),
-                roleDTO,
-                role.isCanPrint(),
-                role.isCanDownload()
+                roleDTO.id(),
+                roleDTO.name(),
+                role.getRunInBackground()
         );
     }
 }

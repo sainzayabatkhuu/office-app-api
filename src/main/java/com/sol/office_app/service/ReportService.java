@@ -5,6 +5,7 @@ import com.sol.office_app.common.GeneralService;
 import com.sol.office_app.config.CustomUserPrincipal;
 import com.sol.office_app.dto.NotificationMessage;
 import com.sol.office_app.dto.ReportDTO;
+import com.sol.office_app.dto.ReportHistoryDto;
 import com.sol.office_app.dto.ReportParameterDTO;
 import com.sol.office_app.entity.*;
 import com.sol.office_app.enums.ReportStatus;
@@ -25,6 +26,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.PathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
@@ -122,6 +125,19 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
             }
         }
         entity.setTitle(title);
+
+        ReportRolePermission reportRolePermission = new ReportRolePermission();
+        reportRolePermission.setBranch(null);
+        reportRolePermission.setRunInBackground("V");
+        Optional<Role> adminRoleOpt = roleRepository.findByName("ROLE_ADMIN");
+        adminRoleOpt.ifPresent(reportRolePermission::setRole);
+        reportRolePermission.setReport(entity);
+
+        if (entity.getRolePermissions() == null) {
+            entity.setRolePermissions(new ArrayList<>());
+        }
+
+        entity.getRolePermissions().add(reportRolePermission);
         Report saved = reportRepository.save(entity);
         return Optional.of(reportDTOMapper.apply(saved));
     }
@@ -347,5 +363,20 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
         } finally {
             //reportHistoryRepository.save(history);
         }
+    }
+
+    public Page<ReportDTO> findDynamic (String title, String fileName,Authentication authentication, Pageable pageable) {
+        // Spring Security-аар нэвтэрсэн хэрэглэгчийн эрх авах
+        CustomUserPrincipal maker = (CustomUserPrincipal) authentication.getPrincipal();
+        System.out.println(maker.getRolePermissions());
+        System.out.println(maker.getRules());
+//        String roleCode = authentication.getAuthorities().stream()
+//                .map(GrantedAuthority::getAuthority)
+//                .findFirst()
+//                .orElse(() -> new IllegalArgumentException("Report not found with id: " ));
+
+
+        Page<Report> reports = reportRepository.findReportsByUserRoleNames(maker.getRolePermissions(), pageable);
+        return reports.map(reportDTOMapper);
     }
 }

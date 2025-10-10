@@ -10,6 +10,9 @@ import java.util.function.Function;
 public class PrivilegeDTOMapper implements Function<Privilege, PrivilegeDTO> {
     @Override
     public PrivilegeDTO apply(Privilege privilege) {
-        return new PrivilegeDTO(privilege.getId(),privilege.getName());
+        return new PrivilegeDTO(
+                privilege.getId(),
+                privilege.getValue(),
+                privilege.getDescription());
     }
 }

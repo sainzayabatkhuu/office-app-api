@@ -17,6 +17,7 @@ import com.sol.office_app.repository.UserRepository;
 import com.sol.office_app.repository.UserRolesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -157,33 +158,62 @@ public class UserService implements GeneralService<UserDTO, Long> {
         }
         return objProfile;
     }
-//
-//    @Override
-//    public Optional<ProfileDTO> saveSettings(Principal principal, ProfileDTO profileDTO) {
-//
-//        Optional<User> user = userRepository.findByEmail(principal.getName());
-//        if(user.isPresent()) {
-//            User existingUser = user.get();
-//            existingUser.setAccountFormat(profileDTO.getAccount_format());
-//            existingUser.setDateFormat(profileDTO.getDate_format());
-//            existingUser.setFontSize(profileDTO.getFont_size());
-//            existingUser.setThemeName(profileDTO.getTheme_name());
-//            existingUser.setShowDash(profileDTO.getShow_dash());
-//            existingUser.setAlertOnHome(profileDTO.getAlert_on_home());
-//            existingUser.setNumberMask(profileDTO.getNumber_mask());
-//
-//            userRepository.save(existingUser);
-//            return Optional.of(profileDTO);
-//        } else {
-//            return Optional.empty();
-//        }
-//    }
+
+    public Optional<ProfileDTO> saveSettings(Principal principal,
+                                             String accountFormat,
+                                             String dateFormat,
+                                             String fontSize,
+                                             String themeName,
+                                             String showDash,
+                                             String alertOnHome,
+                                             String numberMask
+                                             ) {
+        Optional<User> user = userRepository.findByUsername(principal.getName());
+        if(user.isPresent()) {
+            User existingUser = user.get();
+            existingUser.setAccountFormat(accountFormat);
+            existingUser.setDateFormat(dateFormat);
+            existingUser.setFontSize(fontSize);
+            existingUser.setThemeName(themeName);
+            existingUser.setShowDash(showDash);
+            existingUser.setAlertOnHome(alertOnHome);
+            existingUser.setNumberMask(numberMask);
+
+            userRepository.save(existingUser);
+
+            OffsetDateTime offsetDateTime = existingUser.getExpirationTime().atOffset(ZoneOffset.systemDefault().getRules().getOffset(existingUser.getExpirationTime()));
+            Instant instant = offsetDateTime.toInstant();
+            Long epochMilli = instant.toEpochMilli();
+            return Optional.of(new ProfileDTO(
+                    existingUser.getUsername(),
+                    existingUser.getFirstname(),
+                    existingUser.getLastname(),
+                    existingUser.getEmail(),
+                    existingUser.getFontSize().toLowerCase(),
+                    existingUser.getThemeName(),
+                    !existingUser.isEnabled() ? "Unenabled" : "Enabled",
+                    existingUser.getAccountFormat(),
+                    existingUser.getDateFormat(),
+                    existingUser.getShowDash(),
+                    existingUser.getAlertOnHome(),
+                    existingUser.getNumberMask(),
+                    existingUser.isMultiBrnchAccess(),
+                    existingUser.getBranch().getSolId(),
+                    existingUser.getUserLanguage(),
+                    (epochMilli + jwtExpiration),
+                    existingUser.getLastPasswordChangeDate(),
+                    LocalDate.now().isAfter(existingUser.getLastPasswordChangeDate())
+            ));
+        } else {
+            return Optional.empty();
+        }
+    }
 
     public Optional<NotificationMessage> changePassword(Principal principal,
                                                         String currentPassword,
                                                         String password,
                                                         String confirmPassword) {
-        Optional<User> user = userRepository.findByEmail(principal.getName());
+        Optional<User> user = userRepository.findByUsername(principal.getName());
         coreParameterRepository.findOneByParamType("password_expiry_days");
         int passwordExpiryDays = Integer.parseInt(
                 coreParameterRepository.findOneByParamType("password_expiry_days")
@@ -196,12 +226,12 @@ public class UserService implements GeneralService<UserDTO, Long> {
                 throw new IllegalArgumentException("Old password is incorrect");
             }
             existingUser.setPassword(passwordEncoder.encode(password));
-            //existingUser.setLastPasswordChangeDate(LocalDate.now().plusDays(passwordExpiryDays));
+            existingUser.setLastPasswordChangeDate(LocalDate.now().plusDays(passwordExpiryDays));
 
             userRepository.save(existingUser);
             return Optional.of(new NotificationMessage("success","Password changed","Password has been changed.", Map.of()));
         } else {
-            return Optional.empty();
+            throw new IllegalArgumentException("Contact to admin");
         }
     }
 
@@ -235,6 +265,14 @@ public class UserService implements GeneralService<UserDTO, Long> {
             return new PageImpl<>(branchDTOs, pageable, branchDTOs.size());
         }
 
+        return null;
+    }
+
+    public Profile userLimits(Principal principal) {
+        return null;
+    }
+
+    public Profile disallowedBranches(Principal principal) {
         return null;
     }
 }

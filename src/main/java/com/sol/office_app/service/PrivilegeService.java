@@ -39,7 +39,8 @@ public class PrivilegeService implements GeneralService<PrivilegeDTO, Long> {
     @Override
     public Optional<PrivilegeDTO> save(PrivilegeDTO entity) {
         Privilege privilege = new Privilege();
-        privilege.setName(entity.name());
+        privilege.setValue(entity.name());
+        privilege.setDescription(entity.description());
         privilege = privilegeRepository.save(privilege);
         return Optional.of(privilegeDTOMapper.apply(privilege));
     }
@@ -49,7 +50,8 @@ public class PrivilegeService implements GeneralService<PrivilegeDTO, Long> {
         Optional<Privilege> privilege = privilegeRepository.findById(id);
         if (privilege.isPresent()) {
             Privilege existingPrivilege = privilege.get();
-            existingPrivilege.setName(entity.name());
+            existingPrivilege.setValue(entity.name());
+            existingPrivilege.setDescription(entity.description());
             privilegeRepository.save(existingPrivilege);
             return Optional.of(privilegeDTOMapper.apply(existingPrivilege));
         } else {

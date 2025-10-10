@@ -100,7 +100,7 @@ public class AuthenticationService {
         roles.forEach(role -> {
             role.getPrivileges().forEach(p -> {
                 System.out.println(p);
-                String[] pragments = p.getName().split(":");
+                String[] pragments = p.getValue().split(":");
                 String method = pragments[0];
                 Set<String> urls = Arrays.stream(pragments[1].split(",")).collect(Collectors.toSet());
                 Set<String> original = rules.get(method);
@@ -109,6 +109,7 @@ public class AuthenticationService {
                 rules.put(method, original);
             });
         });
+        //permissions надад эний оронд Privilege байгаа тэр нь value, description
 
         String jwtToken = jwtUtils.generateToken(
                 user.getUsername(),

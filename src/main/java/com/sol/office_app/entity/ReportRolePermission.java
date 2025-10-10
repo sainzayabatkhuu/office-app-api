@@ -1,8 +1,14 @@
 package com.sol.office_app.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
+@Table(
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"report_id", "role_id", "branch_id"})
+    }
+)
 public class ReportRolePermission {
 
     @Id
@@ -17,12 +23,12 @@ public class ReportRolePermission {
     @JoinColumn(name = "role_id")
     private Role role;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id", nullable = true)
+    private Branch branch;
+
     @Column(name = "run_in_background", nullable = false)
-    private String runInBackground;  // Values: "VIRTUAL", "BACKGROUND"
-
-    private String canPrint;
-
-    private String canDownload;
+    private String runInBackground;  // Values: "V", "B"
 
     public Long getId() {
         return id;
@@ -48,20 +54,12 @@ public class ReportRolePermission {
         this.role = role;
     }
 
-    public String isCanPrint() {
-        return canPrint;
+    public Branch getBranch() {
+        return branch;
     }
 
-    public void setCanPrint(String canPrint) {
-        this.canPrint = canPrint;
-    }
-
-    public String isCanDownload() {
-        return canDownload;
-    }
-
-    public void setCanDownload(String canDownload) {
-        this.canDownload = canDownload;
+    public void setBranch(Branch branch) {
+        this.branch = branch;
     }
 
     public String getRunInBackground() {
