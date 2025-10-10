@@ -85,9 +85,7 @@ public class CoreParameterService implements GeneralService<CoreParameterRespons
     }
 
     public Page<CoreParameterResponse> findDynamic(String paramType, String paramCode, String paramName, Pageable pageable) {
-        Specification<CoreParameter> spec = null; // start empty
-
-        System.out.println(paramType +" - "+ paramCode +" - "+ paramName);
+        Specification<CoreParameter> spec = null;
 
         if (paramType != null && !paramType.isBlank()) {
             Specification<CoreParameter> typeSpec = (root, query, cb) ->

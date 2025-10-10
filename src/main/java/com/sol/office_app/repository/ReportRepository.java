@@ -15,6 +15,13 @@ public interface ReportRepository extends JpaRepository<Report, Long>{
 
     @Query("""
     SELECT r FROM Report r
+    INNER JOIN r.rolePermissions rp
+    WHERE rp.role.name IN :roleNames
+""")
+    Page<Report> findReportsByUserRoleNames(@Param("roleNames") List<String> roleNames, Pageable pageable);
+
+    @Query("""
+    SELECT r FROM Report r
     JOIN r.rolePermissions rp
     WHERE rp.role.id IN :roleIds
 """)
@@ -25,4 +32,6 @@ public interface ReportRepository extends JpaRepository<Report, Long>{
     WHERE r.fileName = :fileName
 """)
     Report finnByFileName(@Param("fileName") String filename);
+
+
 }

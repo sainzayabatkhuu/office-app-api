@@ -28,13 +28,17 @@ public class ReportController {
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public Page<ReportDTO> index(@RequestParam(defaultValue = "0") int page,
-                                 @RequestParam(defaultValue = "10") int size){
-        return reportService.findAll(PageRequest.of(page, size));
+    public Page<ReportDTO> index(
+            @RequestParam(defaultValue = "") String title,
+            @RequestParam(defaultValue = "") String fileName,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication auth) {
+        return reportService.findDynamic(title, fileName, auth, PageRequest.of(page, size));
     }
 
     @GetMapping("/{id:\\d+}")
-    public ResponseEntity<ReportDTO> get(@PathVariable("id") Long id){
+    public ResponseEntity<ReportDTO> get(@PathVariable("id") Long id) {
         return reportService.get(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
@@ -71,12 +75,12 @@ public class ReportController {
     @GetMapping(value = "/report-list", produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<ReportDTO> getList(@RequestParam(defaultValue = "0") int page,
                                    @RequestParam(defaultValue = "10") int size,
-                                   Authentication authentication){
+                                   Authentication authentication) {
         return reportService.getList(authentication, PageRequest.of(page, size));
     }
 
     @GetMapping("/details/{id}")
-    public ResponseEntity<ReportDTO> details(@PathVariable("id") Long id){
+    public ResponseEntity<ReportDTO> details(@PathVariable("id") Long id) {
         return reportService.getDetails(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());

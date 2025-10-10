@@ -10,16 +10,9 @@ public class Privilege {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    private String value;
 
-    public Privilege() {
-        super();
-    }
-
-    public Privilege(final String name) {
-        super();
-        this.name = name;
-    }
+    private String description;
 
     public Long getId() {
         return id;
@@ -29,20 +22,28 @@ public class Privilege {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getValue() {
+        return value;
     }
 
-    public void setName(final String name) {
-        this.name = name;
+    public void setValue(String value) {
+        this.value = value;
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
+        result = prime * result + ((getValue() == null) ? 0 : getValue().hashCode());
         return result;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override
@@ -54,10 +55,10 @@ public class Privilege {
         if (getClass() != obj.getClass())
             return false;
         Privilege other = (Privilege) obj;
-        if (getName() == null) {
-            if (other.getName() != null)
+        if (getValue() == null) {
+            if (other.getValue() != null)
                 return false;
-        } else if (!getName().equals(other.getName()))
+        } else if (!getValue().equals(other.getValue()))
             return false;
         return true;
     }
@@ -65,7 +66,7 @@ public class Privilege {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("Privilege [name=").append(name).append("]").append("[id=").append(id).append("]");
+        builder.append("Privilege [name=").append(value).append("]").append("[id=").append(id).append("]");
         return builder.toString();
     }
 }

@@ -68,7 +68,7 @@ public class User extends Auditable implements UserDetails {
             collection.addAll(role.getPrivileges());
         }
         for (Privilege item : collection) {
-            privileges.add(item.getName());
+            privileges.add(item.getValue());
         }
         return privileges;
     }
