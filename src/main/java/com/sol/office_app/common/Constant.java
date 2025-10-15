@@ -13,4 +13,5 @@ public class Constant {
     public static final String REPORT_PERMISSION_URL_PREFIX = API_URL_v1_PREFIX + "/report-permissions";
     public static final String REPORT_HISTORY_URL_PREFIX = API_URL_v1_PREFIX + "/report-histories";
     public static final String CORE_PARAM_URL_PREFIX = API_URL_v1_PREFIX + "/core-parameters";
+    public static final String EXCEL_EXPORT_URL_PREFIX = API_URL_v1_PREFIX + "/export-monitor";
 }

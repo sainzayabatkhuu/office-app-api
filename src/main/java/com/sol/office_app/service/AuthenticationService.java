@@ -9,13 +9,16 @@ import com.sol.office_app.repository.RoleRepository;
 import com.sol.office_app.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import javax.security.auth.login.AccountNotFoundException;
+import javax.swing.text.html.Option;
+import java.sql.Timestamp;
+import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,7 +42,7 @@ public class AuthenticationService {
         this.jwtUtils = jwtUtils;
     }
 
-//    public User signup(RegisterUserDto input) {
+    //    public User signup(RegisterUserDto input) {
 //        User user = new User();
 //        user.setEmail(input.getEmail());
 //        user.setPassword(passwordEncoder.encode(input.password()));
@@ -49,46 +52,38 @@ public class AuthenticationService {
 //        return userRepository.save(user);
 //    }
 //
-    public LoginResponse authenticate(HttpServletRequest req, LoginDto input) {
+    public LoginResponse authenticate(LoginDto input) {
+        Optional<User> optionalUser = userRepository.findByUsername(input.username());
 
-        User user = userRepository.findByUsername(input.username())
-                .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
-        try {
-            // update font-size and theme name
-            if (user.getFontSize() == null || user.getFontSize().equalsIgnoreCase(""))
-                user.setFontSize("small");
-            if (user.getThemeName() == null || user.getThemeName().equalsIgnoreCase(""))
-                user.setThemeName("CADER_GREEN");
-            user.setExpirationTime(LocalDateTime.now());
+        if (optionalUser.isEmpty()) {
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "User you are referring doesn't exist");
+        }
 
-            userRepository.save(user);
-            userRepository.flush();
+        User user = optionalUser.get();
 
-            //userLoginHistoryService.logLogin(user, req.getRemoteAddr(), true);
-            // don't forget it. if you forget this one, you will face with Deadlock error
-            //userLoginHistoryRepository.flush();
-        } catch (BadCredentialsException ex) {
-            if(user.isEnabled() && user.isAccountNonLocked()) {
-                if (user.getFailedAttempt() < MAX_FAILED_ATTEMPTS - 1) {
-                    user.setFailedAttempt(user.getFailedAttempt() + 1);
-                } else {
-                    user.setAccountNonLocked(false);
-                    user.setLockTime(LocalDateTime.now());
-                    throw new RuntimeException("Your account has been locked due to " + MAX_FAILED_ATTEMPTS + " failed attempts."
-                            + " It will be unlocked after 15 minutes.");
-                }
-                user = userRepository.save(user);
-                userRepository.flush();
+        if (user.getLockTime() != null && System.currentTimeMillis() - user.getLockTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() < LOCK_TIME_DURATION) {
+            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Your account is temporarily locked. Wait for 15 minutes before attempting!");
+        }
 
-                //userLoginHistoryService.logLogin(user, req.getRemoteAddr(), false);
-                //userLoginHistoryRepository.flush();
+        if (!user.isAccountNonLocked()) {
+            throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, "Your account is permanently locked. Contact admin to resolve the issue!");
+        }
 
-            } else if (!user.isAccountNonLocked()) {
-                if (this.unlockWhenTimeExpired(user)) {
-                    throw new RuntimeException("Your account has been unlocked. Please try to login again.");
-                }
+        BCryptPasswordEncoder bp = new BCryptPasswordEncoder();
+        if (!bp.matches(input.password(), user.getPassword())) {
+            user.setFailedAttempt(user.getFailedAttempt() + 1);
+            if (user.getFailedAttempt() >= 3) {
+                user.setLockTime(LocalDateTime.now());
             }
-            throw new RuntimeException("invalid access");
+            if (user.getFailedAttempt() >= 10) {
+                user.setAccountNonLocked(false);
+            }
+            userRepository.save(user);
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Username or Password is not correct. ");
+        } else {
+            user.setLockTime(null);
+            user.setFailedAttempt(0);
+            userRepository.save(user);
         }
 
         Set<Role> roles = user.getRoles();
@@ -99,7 +94,6 @@ public class AuthenticationService {
         rules.put("delete", new HashSet<>());
         roles.forEach(role -> {
             role.getPrivileges().forEach(p -> {
-                System.out.println(p);
                 String[] pragments = p.getValue().split(":");
                 String method = pragments[0];
                 Set<String> urls = Arrays.stream(pragments[1].split(",")).collect(Collectors.toSet());
@@ -113,29 +107,11 @@ public class AuthenticationService {
 
         String jwtToken = jwtUtils.generateToken(
                 user.getUsername(),
-
+                user.getBranch().getSolId(),
+                user.isMultiBrnchAccess(),
                 user.getRoles().stream().map(Role::getName).collect(Collectors.toList()),
                 rules);
 
-        return new LoginResponse(jwtToken,jwtUtils.getExpirationTime(), null);
-    }
-
-    public boolean unlockWhenTimeExpired(User user) {
-
-        OffsetDateTime offsetDateTime = user.getLockTime().atOffset(ZoneOffset.systemDefault().getRules().getOffset(user.getLockTime()));
-        Instant instant = offsetDateTime.toInstant();
-        long lockTimeInMillis = instant.toEpochMilli();
-
-        long currentTimeInMillis = System.currentTimeMillis();
-
-        if (lockTimeInMillis + LOCK_TIME_DURATION < currentTimeInMillis) {
-            user.setAccountNonLocked(true);
-            user.setLockTime(null);
-            user.setFailedAttempt(0);
-            userRepository.save(user);
-            return true;
-        }
-
-        return false;
+        return new LoginResponse(jwtToken, jwtUtils.getExpirationTime(), null);
     }
 }

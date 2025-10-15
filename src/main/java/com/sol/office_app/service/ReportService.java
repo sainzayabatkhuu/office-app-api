@@ -16,8 +16,6 @@ import com.sol.office_app.repository.RoleRepository;
 import com.sol.office_app.repository.UserRepository;
 import com.sol.office_app.util.Utils;
 import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import net.sf.jasperreports.engine.design.JRDesignSubreport;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.util.JRLoader;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
@@ -26,10 +24,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.PathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.datasource.DataSourceUtils;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,6 +41,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 @Service
@@ -273,7 +268,7 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
         //ReportHistory history = createReportHistory(report, maker);
 
         ReportHistory finalHistory = new ReportHistory();
-        finalHistory.setBranchCode("000");
+        finalHistory.setBranchCode(maker.getBranch());
         finalHistory.setReportFileName(report.getFileName());
         finalHistory.setReportTitleName(report.getTitle());
         finalHistory.setStatus(ReportStatus.PROCESSING);
@@ -289,6 +284,7 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
 
             // Step 4: Compile Report & Subreports
             Utils.compileSubreports(jrxmlPath);
+            System.out.println(jasperPath.toString());
             JasperCompileManager.compileReportToFile(jrxmlPath.toString(), jasperPath.toString());
 
             JasperReport jasperReport = (JasperReport) JRLoader.loadObjectFromFile(jasperPath.toString());
@@ -304,12 +300,9 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
             // -----------------------------
             String runInBackground = "B"; // "Virtual" | "Background"
 
-            if(runInBackground.equals("V")) {
+            if(finalHistory.getRunInBackground().equals("V")) {
 
                 JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, convertedParams, conn);
-                finalHistory.setReportOutputFile(generatedFileName);
-                finalHistory.setFinishedAt(LocalDateTime.now());
-                reportHistoryRepository.save(finalHistory);
 
                 Path userDir = Paths.get(outputDir, maker.getName());
                 Files.createDirectories(userDir);
@@ -317,6 +310,10 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
                 byte[] data = Utils.exportToFormat(jasperPrint, format);
                 Files.write(outputPath, data);
 
+                finalHistory.setStatus(ReportStatus.SUCCESS);
+                finalHistory.setReportOutputFile(generatedFileName);
+                finalHistory.setFinishedAt(LocalDateTime.now());
+                reportHistoryRepository.save(finalHistory);
 
                 return new NotificationMessage(
                         "success",
@@ -331,7 +328,7 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
                     try {
 
                         // Wait for 1 minute before starting the background export
-                        Thread.sleep(60 * 1000);
+                        //Thread.sleep(60 * 1000);
 
                         JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, convertedParams, conn);
                         finalHistory.setStatus(ReportStatus.SUCCESS);
@@ -348,10 +345,14 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
                         notifierService.runNotifier("regular", "", "Background report process was invoked and successfully completed.");
 
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        finalHistory.setStatus(ReportStatus.FAILED);
+                        finalHistory.setReportOutputFile(generatedFileName);
+                        finalHistory.setFinishedAt(LocalDateTime.now());
+                        reportHistoryRepository.save(finalHistory);
+
+                        notifierService.runNotifier("error", "", "Background report process was invoked and failed.");
                     }
                 });
-
 
                 return new NotificationMessage(
                         "success",
@@ -361,7 +362,10 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
                 );
             }
         } finally {
-            //reportHistoryRepository.save(history);
+            finalHistory.setStatus(ReportStatus.FAILED);
+            finalHistory.setReportOutputFile(generatedFileName);
+            finalHistory.setFinishedAt(LocalDateTime.now());
+            reportHistoryRepository.save(finalHistory);
         }
     }
 

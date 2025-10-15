@@ -11,7 +11,6 @@ public record CustomerDTO(
         String customerCategory,
         Boolean isPrivateCustomer,
 
-
         String prefix1,
         String prefix2,
         String prefix3,

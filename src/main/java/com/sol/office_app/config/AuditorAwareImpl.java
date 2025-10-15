@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.security.Principal;
 import java.util.Optional;
 
 public class AuditorAwareImpl implements AuditorAware<String> {
@@ -16,15 +17,14 @@ public class AuditorAwareImpl implements AuditorAware<String> {
     @Override
     public Optional<String> getCurrentAuditor() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println(authentication == null || !authentication.isAuthenticated());
+
         if (authentication == null || !authentication.isAuthenticated()) {
             return Optional.of("sysadmin"); // default if not authenticated
         }
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetails) {
-            return Optional.of(((UserDetails) principal).getUsername());
+        if (authentication.getPrincipal() instanceof String) {
+            return Optional.of((String)authentication.getPrincipal());
         }
-
-        return Optional.of("sysadmin");
+        Principal principal = (Principal) authentication.getPrincipal();
+        return Optional.of(principal.getName());
     }
 }

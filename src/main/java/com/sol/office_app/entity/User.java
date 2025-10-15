@@ -37,7 +37,7 @@ public class User extends Auditable implements UserDetails {
     // Track last password change
     private LocalDate lastPasswordChangeDate;
 
-    @ManyToMany(cascade=CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(cascade=CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(
             name = "users_roles",
             joinColumns = @JoinColumn(

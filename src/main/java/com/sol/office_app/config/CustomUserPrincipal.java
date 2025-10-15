@@ -14,7 +14,8 @@ public class CustomUserPrincipal implements Principal {
 //    private final String showDash;
 //    private final String alertOnHome;
 //    private final String numberMask;
-//    private final String multiBrnchAccess;
+    private final String branch;
+    private final Boolean multiBrnchAccess;
     private final List<String> rolePermissions;
 
     private final Map<String, List<String>> rules;
@@ -30,7 +31,8 @@ public class CustomUserPrincipal implements Principal {
 //            String showDash,
 //            String alertOnHome,
 //            String numberMask,
-//            String multiBrnchAccess,
+            String branch,
+            Boolean multiBrnchAccess,
             List<String> rolePermissions,
             Map<String, List<String>> rules) {
         this.username = username;
@@ -43,7 +45,8 @@ public class CustomUserPrincipal implements Principal {
 //        this.showDash = showDash;
 //        this.alertOnHome = alertOnHome;
 //        this.numberMask = numberMask;
-//        this.multiBrnchAccess = multiBrnchAccess;
+        this.branch= branch;
+        this.multiBrnchAccess = multiBrnchAccess;
         this.rolePermissions = rolePermissions;
         this.rules = rules;
     }
@@ -52,6 +55,10 @@ public class CustomUserPrincipal implements Principal {
     public String getName() {
         return username;
     }
+
+    public String getBranch() { return this.branch; }
+
+    public Boolean getMultiBrnchAccess() { return this.multiBrnchAccess; }
 
     public List<String> getRolePermissions() {
         return rolePermissions;
