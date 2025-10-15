@@ -34,6 +34,16 @@ public class JwtUtils {
     }
 
     @SuppressWarnings("unchecked")
+    public static String getBrnch(String token) {
+        return (String) extractAllClaims(token).get("brnch");
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Boolean getMultiBrnchAccess(String token) {
+        return (Boolean) extractAllClaims(token).get("multiBrnchAccess");
+    }
+
+    @SuppressWarnings("unchecked")
     public static List<String> getRolePermissions(String token) {
         return (List<String>) extractAllClaims(token).get("roles_permissions");
     }
@@ -71,8 +81,10 @@ public class JwtUtils {
                 .compact();
     }
 
-    public String generateToken(String username, List<String> rolePermissions, Map<String, Set<String>> rules) {
+    public String generateToken(String username,String branch, Boolean multiBrnchAccess, List<String> rolePermissions, Map<String, Set<String>> rules) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("brnch", branch);
+        claims.put("multiBrnchAccess", multiBrnchAccess);
         claims.put("roles_permissions", rolePermissions);
         claims.put("rules", rules);
         return buildToken(username, claims);

@@ -36,10 +36,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         String username = JwtUtils.getUsername(token);
+        Boolean multiBrnchAccess = JwtUtils.getMultiBrnchAccess(token);
+        String branch = JwtUtils.getBrnch(token);
         List<String> permissions = JwtUtils.getRolePermissions(token);
         Map<String, List<String>> rules = JwtUtils.getRules(token);
 
-        CustomUserPrincipal userPrincipal = new CustomUserPrincipal(username, permissions, rules);
+        CustomUserPrincipal userPrincipal = new CustomUserPrincipal(username, branch, multiBrnchAccess, permissions, rules);
 
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(

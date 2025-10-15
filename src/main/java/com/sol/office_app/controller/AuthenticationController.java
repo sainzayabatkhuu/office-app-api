@@ -29,8 +29,8 @@ public class AuthenticationController {
 //    }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> authenticate(HttpServletRequest req, @RequestBody LoginDto loginDto) {
-        LoginResponse loginResponse = authenticationService.authenticate(req, loginDto);
+    public ResponseEntity<LoginResponse> authenticate( @RequestBody LoginDto loginDto) {
+        LoginResponse loginResponse = authenticationService.authenticate( loginDto);
         return ResponseEntity.ok(loginResponse);
     }
 }
