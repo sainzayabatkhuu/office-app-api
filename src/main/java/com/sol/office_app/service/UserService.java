@@ -2,9 +2,9 @@ package com.sol.office_app.service;
 
 import com.sol.office_app.common.GeneralService;
 import com.sol.office_app.config.JwtUtils;
+import com.sol.office_app.domain.response.NotificationMessage;
 import com.sol.office_app.dto.*;
 import com.sol.office_app.entity.Branch;
-import com.sol.office_app.entity.CoreParameter;
 import com.sol.office_app.entity.User;
 import com.sol.office_app.entity.UserRoles;
 import com.sol.office_app.mapper.BranchDTOMapper;
@@ -142,7 +142,7 @@ public class UserService implements GeneralService<UserDTO, Long> {
                     user.getFontSize().toLowerCase(),
                     user.getThemeName(),
                     !user.isEnabled() ? "Unenabled" : "Enabled",
-                    user.getAccountFormat(),
+                    user.getAmountFormat(),
                     user.getDateFormat(),
                     user.getShowDash(),
                     user.getAlertOnHome(),
@@ -160,7 +160,7 @@ public class UserService implements GeneralService<UserDTO, Long> {
     }
 
     public Optional<ProfileDTO> saveSettings(Principal principal,
-                                             String accountFormat,
+                                             String amountFormat,
                                              String dateFormat,
                                              String fontSize,
                                              String themeName,
@@ -171,7 +171,7 @@ public class UserService implements GeneralService<UserDTO, Long> {
         Optional<User> user = userRepository.findByUsername(principal.getName());
         if(user.isPresent()) {
             User existingUser = user.get();
-            existingUser.setAccountFormat(accountFormat);
+            existingUser.setAmountFormat(amountFormat);
             existingUser.setDateFormat(dateFormat);
             existingUser.setFontSize(fontSize);
             existingUser.setThemeName(themeName);
@@ -192,7 +192,7 @@ public class UserService implements GeneralService<UserDTO, Long> {
                     existingUser.getFontSize().toLowerCase(),
                     existingUser.getThemeName(),
                     !existingUser.isEnabled() ? "Unenabled" : "Enabled",
-                    existingUser.getAccountFormat(),
+                    existingUser.getAmountFormat(),
                     existingUser.getDateFormat(),
                     existingUser.getShowDash(),
                     existingUser.getAlertOnHome(),

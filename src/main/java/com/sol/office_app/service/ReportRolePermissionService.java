@@ -61,9 +61,12 @@ public class ReportRolePermissionService implements GeneralService<ReportRolePer
 
         return repository.findAll(spec, pageable).map(entity -> new ReportRolePermissionDTO(
                 entity.getId(),
+                entity.getBranch().equals(null) ? "": entity.getBranch().getSolId(),
+                entity.getBranch().equals(null) ? "": entity.getBranch().getName(),
                 entity.getRole().getId(),
                 entity.getRole().getName(),
-                entity.getRunInBackground()
+                entity.getRunInBackground(),
+                entity.getDelFlg()
         ));
     }
 }

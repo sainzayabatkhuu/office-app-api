@@ -1,6 +1,6 @@
 package com.sol.office_app.exception;
 
-import com.sol.office_app.dto.NotificationMessage;
+import com.sol.office_app.domain.response.NotificationMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

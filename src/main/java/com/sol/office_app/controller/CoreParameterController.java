@@ -1,7 +1,7 @@
 package com.sol.office_app.controller;
 
 import com.sol.office_app.common.Constant;
-import com.sol.office_app.dto.response.CoreParameterResponse;
+import com.sol.office_app.domain.response.CoreParameterResponse;
 import com.sol.office_app.service.CoreParameterService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

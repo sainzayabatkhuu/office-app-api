@@ -1,4 +1,4 @@
-package com.sol.office_app.dto;
+package com.sol.office_app.domain.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

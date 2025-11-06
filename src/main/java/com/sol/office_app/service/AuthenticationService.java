@@ -1,23 +1,18 @@
 package com.sol.office_app.service;
 
 import com.sol.office_app.config.JwtUtils;
-import com.sol.office_app.dto.request.LoginDto;
-import com.sol.office_app.dto.response.LoginResponse;
+import com.sol.office_app.domain.request.LoginDto;
+import com.sol.office_app.domain.response.LoginResponse;
 import com.sol.office_app.entity.Role;
 import com.sol.office_app.entity.User;
 import com.sol.office_app.repository.RoleRepository;
 import com.sol.office_app.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
-import javax.security.auth.login.AccountNotFoundException;
-import javax.swing.text.html.Option;
-import java.sql.Timestamp;
 import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;

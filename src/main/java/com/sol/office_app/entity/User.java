@@ -16,7 +16,7 @@ import java.util.*;
 
 @Table(name = "users")
 @Entity
-@SoftDelete(strategy = SoftDeleteType.DELETED)
+@SoftDelete(columnName = "deleted", strategy = SoftDeleteType.DELETED)
 @EntityListeners(AuditingEntityListener.class)
 public class User extends Auditable implements UserDetails {
     @Id
@@ -157,7 +157,7 @@ public class User extends Auditable implements UserDetails {
     private String themeName;
 
     @Column
-    private String accountFormat;
+    private String amountFormat;
 
     @Column
     private String dateFormat;
@@ -226,12 +226,12 @@ public class User extends Auditable implements UserDetails {
         this.themeName = themeName;
     }
 
-    public String getAccountFormat() {
-        return accountFormat;
+    public String getAmountFormat() {
+        return amountFormat;
     }
 
-    public void setAccountFormat(String accountFormat) {
-        this.accountFormat = accountFormat;
+    public void setAmountFormat(String amountFormat) {
+        this.amountFormat = amountFormat;
     }
 
     public String getDateFormat() {
@@ -290,9 +290,6 @@ public class User extends Auditable implements UserDetails {
         this.expirationTime = expirationTime;
     }
 
-    @Column(name = "delete_flag", nullable = false)
-    private boolean deleteFlag;
-
     @Column(name = "account_non_locked")
     private boolean accountNonLocked;
 
@@ -301,14 +298,6 @@ public class User extends Auditable implements UserDetails {
 
     @Column(name = "lock_time")
     private LocalDateTime lockTime;
-
-    public boolean isDeleteFlag() {
-        return deleteFlag;
-    }
-
-    public void setDeleteFlag(boolean deleteFlag) {
-        this.deleteFlag = deleteFlag;
-    }
 
     public void setAccountNonLocked(boolean accountNonLocked) {
         this.accountNonLocked = accountNonLocked;

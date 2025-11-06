@@ -1,11 +1,9 @@
 package com.sol.office_app.service;
 
-import com.sol.office_app.dto.NotificationMessage;
+import com.sol.office_app.domain.response.NotificationMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 @Service
 public class NotifierService {
