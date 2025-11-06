@@ -18,7 +18,7 @@ public class UserDTOMapper implements Function<User, UserDTO> {
         obj.setFirstname(user.getFirstname());
         obj.setLastname(user.getLastname());
 
-        obj.setAccountFormat(user.getAccountFormat());
+        obj.setAmountFormat(user.getAmountFormat());
         obj.setDateFormat(user.getDateFormat());
         obj.setFontSize(user.getFontSize());
         obj.setThemeName(user.getThemeName());

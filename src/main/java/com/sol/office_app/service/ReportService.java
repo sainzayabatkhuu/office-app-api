@@ -1,11 +1,9 @@
 package com.sol.office_app.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sol.office_app.common.GeneralService;
 import com.sol.office_app.config.CustomUserPrincipal;
-import com.sol.office_app.dto.NotificationMessage;
+import com.sol.office_app.domain.response.NotificationMessage;
 import com.sol.office_app.dto.ReportDTO;
-import com.sol.office_app.dto.ReportHistoryDto;
 import com.sol.office_app.dto.ReportParameterDTO;
 import com.sol.office_app.entity.*;
 import com.sol.office_app.enums.ReportStatus;
@@ -35,13 +33,10 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.Principal;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 @Service

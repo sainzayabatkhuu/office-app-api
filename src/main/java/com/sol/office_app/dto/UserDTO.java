@@ -23,7 +23,7 @@ public class UserDTO {
     @Column
     private String themeName;
     @Column
-    private String accountFormat;
+    private String amountFormat;
     @Column
     private String dateFormat;
     @Column
@@ -139,12 +139,12 @@ public class UserDTO {
         this.themeName = themeName;
     }
 
-    public String getAccountFormat() {
-        return accountFormat;
+    public String getAmountFormat() {
+        return amountFormat;
     }
 
-    public void setAccountFormat(String accountFormat) {
-        this.accountFormat = accountFormat;
+    public void setAmountFormat(String amountFormat) {
+        this.amountFormat = amountFormat;
     }
 
     public String getDateFormat() {

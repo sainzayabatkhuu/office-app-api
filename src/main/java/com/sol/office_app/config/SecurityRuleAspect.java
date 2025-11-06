@@ -36,7 +36,6 @@ public class SecurityRuleAspect {
         } else {
             throw new RuntimeException("Principal is missing or invalid");
         }
-
         if (!rules.get(method.toLowerCase()).contains(path))
             throw new RuntimeException("Not authorized");
 

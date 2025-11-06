@@ -2,6 +2,8 @@ package com.sol.office_app.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.SoftDelete;
+import org.hibernate.annotations.SoftDeleteType;
 
 @Entity
 @Table(
@@ -23,12 +25,14 @@ public class ReportRolePermission {
     @JoinColumn(name = "role_id")
     private Role role;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "branch_id", nullable = true)
     private Branch branch;
 
     @Column(name = "run_in_background", nullable = false)
     private String runInBackground;  // Values: "V", "B"
+
+    private String delFlg = "N";
 
     public Long getId() {
         return id;
@@ -68,5 +72,13 @@ public class ReportRolePermission {
 
     public void setRunInBackground(String runInBackground) {
         this.runInBackground = runInBackground;
+    }
+
+    public String getDelFlg() {
+        return delFlg;
+    }
+
+    public void setDelFlg(String delFlg) {
+        this.delFlg = delFlg;
     }
 }

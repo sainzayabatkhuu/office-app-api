@@ -2,8 +2,11 @@ package com.sol.office_app.dto;
 
 public record ReportRolePermissionDTO(
         Long id,
-        Long role_id,
-        String role_name,
-        String isBackground
+        String brnchId,
+        String brnchName,
+        Long roleId,
+        String roleName,
+        String isBackground,
+        String delFlg
 ) {
 }

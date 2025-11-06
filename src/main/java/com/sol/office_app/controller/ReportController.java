@@ -1,7 +1,7 @@
 package com.sol.office_app.controller;
 
 import com.sol.office_app.common.Constant;
-import com.sol.office_app.dto.NotificationMessage;
+import com.sol.office_app.domain.response.NotificationMessage;
 import com.sol.office_app.dto.ReportDTO;
 import com.sol.office_app.service.ReportService;
 import org.springframework.data.domain.Page;

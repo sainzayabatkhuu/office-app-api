@@ -1,4 +1,4 @@
-package com.sol.office_app.dto.response;
+package com.sol.office_app.domain.response;
 
 import com.sol.office_app.dto.UserDTO;
 

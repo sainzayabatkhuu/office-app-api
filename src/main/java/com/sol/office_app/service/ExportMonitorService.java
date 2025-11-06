@@ -1,9 +1,8 @@
 package com.sol.office_app.service;
 
-import com.sol.office_app.common.GeneralService;
 import com.sol.office_app.config.CustomUserPrincipal;
 import com.sol.office_app.dto.ExportMonitorDTO;
-import com.sol.office_app.dto.NotificationMessage;
+import com.sol.office_app.domain.response.NotificationMessage;
 import com.sol.office_app.entity.ExportMonitor;
 import com.sol.office_app.repository.ExportMonitorRepository;
 import org.apache.poi.ss.usermodel.Row;
@@ -11,7 +10,8 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +21,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -96,5 +95,66 @@ public class ExportMonitorService {
             repository.save(monitor);
             throw new RuntimeException("Export request failed: " + ex.getMessage(), ex);
         }
+    }
+
+    public Page<ExportMonitorDTO> findDynamic(
+            String referenceNumber,
+            String username,
+            String fetchSize,
+            String functionId,
+            String requestedTime,
+            String status,
+            PageRequest pageable) {
+        Specification<ExportMonitor> spec = null;
+
+        if (referenceNumber != null && !referenceNumber.isBlank()) {
+            Specification<ExportMonitor> typeSpec = (root, query, cb) ->
+                    cb.like(cb.lower(root.get("referenceNumber")), "%" + referenceNumber + "%");
+            spec = spec == null ? typeSpec : spec.and(typeSpec);
+        }
+
+        if (username != null && !username.isBlank()) {
+            Specification<ExportMonitor> codeSpec = (root, query, cb) ->
+                    cb.like(cb.lower(root.get("userId")), "%" + username + "%");
+            spec = spec == null ? codeSpec : spec.and(codeSpec);
+        }
+
+        if (fetchSize != null && !fetchSize.isBlank()) {
+            Specification<ExportMonitor> nameSpec = (root, query, cb) ->
+                    cb.equal(root.get("fetchSize"), fetchSize);
+            spec = spec == null ? nameSpec : spec.and(nameSpec);
+        }
+
+        if (functionId != null && !functionId.isBlank()) {
+            Specification<ExportMonitor> nameSpec = (root, query, cb) ->
+                    cb.equal(cb.lower(root.get("functionId")), functionId);
+            spec = spec == null ? nameSpec : spec.and(nameSpec);
+        }
+
+        if (requestedTime != null && !requestedTime.isBlank()) {
+            Specification<ExportMonitor> nameSpec = (root, query, cb) ->
+                    cb.equal(root.get("requestedTime"), requestedTime);
+            spec = spec == null ? nameSpec : spec.and(nameSpec);
+        }
+
+        if (status != null && !status.isBlank()) {
+            Specification<ExportMonitor> nameSpec = (root, query, cb) ->
+                    cb.equal(cb.lower(root.get("exportStatus")), status);
+            spec = spec == null ? nameSpec : spec.and(nameSpec);
+        }
+
+        return repository.findAll(spec, pageable)
+                .map(entity -> new ExportMonitorDTO(
+                entity.getId(),
+                entity.getReferenceNumber(),
+                entity.getFunctionId(),
+                entity.getUserId(),
+                entity.getFetchSize(),
+                entity.getRequestedTime(),
+                entity.getResponseTime(),
+                entity.getExportStatus(),
+                entity.getFileName(),
+                entity.getTotalRecords()
+        ));
     }
 }

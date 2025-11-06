@@ -23,9 +23,12 @@ public class ReportRolePermissionDTOMapper implements Function<ReportRolePermiss
 
         return new ReportRolePermissionDTO(
                 role.getId(),
+                role.getBranch() == null ?"":role.getBranch().getSolId(),
+                role.getBranch() == null ?"":role.getBranch().getName(),
                 roleDTO.id(),
                 roleDTO.name(),
-                role.getRunInBackground()
+                role.getRunInBackground(),
+                role.getDelFlg()
         );
     }
 }

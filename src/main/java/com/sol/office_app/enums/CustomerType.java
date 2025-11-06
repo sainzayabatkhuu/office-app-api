@@ -1,3 +1,3 @@
 package com.sol.office_app.enums;
 
-public enum CustomerType {INDIVIDUAL, CORPORATE, BANK}
+public enum CustomerType {R, C, B}
