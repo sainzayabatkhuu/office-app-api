@@ -26,7 +26,19 @@ public class UserDTOMapper implements Function<User, UserDTO> {
         obj.setAlertOnHome(user.getAlertOnHome());
         obj.setNumberMask(user.getNumberMask());
 
-        //obj.setExpirationTime(user.getExpirationTime().toEpochSecond());
+        obj.setUserLanguage(user.getUserLanguage());
+        obj.setMultiBrnchAccess(Boolean.TRUE.equals(user.getMultiBrnchAccessOrNull()));
+        obj.setBranchCode(user.getBranch() == null ? null : user.getBranch().getSolId());
+        obj.setRoleNames(user.getRoles().stream().map(r -> r.getName()).sorted().toList());
+        obj.setEnabled(user.isEnabled());
+        obj.setFailedAttempts(user.getFailedAttempt());
+        obj.setLockTime(user.getLockTime());
+        obj.setLastPasswordChangeDate(user.getLastPasswordChangeDate());
+        obj.setCreatedDate(user.getCreatedDate());
+        obj.setCreatedBy(user.getCreatedBy());
+        obj.setLastModifiedDate(user.getLastModifiedDate());
+        obj.setLastModifiedBy(user.getLastModifiedBy());
+        obj.setModifiedCount(user.getModifiedCount());
 
         return obj;
     }

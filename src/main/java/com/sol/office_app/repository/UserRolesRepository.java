@@ -1,5 +1,11 @@
 package com.sol.office_app.repository;
 
+import org.springframework.data.repository.query.Param;
+
+import org.springframework.data.jpa.repository.Query;
+
+import org.springframework.data.jpa.repository.Modifying;
+
 import com.sol.office_app.entity.User;
 import com.sol.office_app.entity.UserRoles;
 import org.springframework.data.domain.Page;
@@ -18,4 +24,8 @@ public interface UserRolesRepository extends JpaRepository<UserRoles, Long> {
 //    List<UserRoles> findByUserEmailRaw(@Param("id") Long id);
 
     Page<UserRoles> findByUser(User user, Pageable pageable);
+
+    @Modifying
+    @Query("delete from UserRoles ur where ur.user.id = :userId")
+    int deleteByUserId(@Param("userId") Long userId);
 }

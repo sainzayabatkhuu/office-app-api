@@ -38,6 +38,40 @@ public class UserDTO {
     private Boolean tokenExpired;
     private Number expirationTime;
     private Collection<? extends GrantedAuthority> authorities;
+    private String branchCode;
+    private Collection<String> roleNames;
+    private Boolean enabled;
+    private Integer failedAttempts;
+    private java.time.LocalDateTime lockTime;
+    private java.time.LocalDate lastPasswordChangeDate;
+    private java.time.LocalDateTime createdDate;
+    private String createdBy;
+    private java.time.LocalDateTime lastModifiedDate;
+    private String lastModifiedBy;
+    private Integer modifiedCount;
+
+    public String getBranchCode() { return branchCode; }
+    public void setBranchCode(String branchCode) { this.branchCode = branchCode; }
+    public Collection<String> getRoleNames() { return roleNames; }
+    public void setRoleNames(Collection<String> roleNames) { this.roleNames = roleNames; }
+    public Boolean getEnabled() { return enabled; }
+    public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+    public Integer getFailedAttempts() { return failedAttempts; }
+    public void setFailedAttempts(Integer failedAttempts) { this.failedAttempts = failedAttempts; }
+    public java.time.LocalDateTime getLockTime() { return lockTime; }
+    public void setLockTime(java.time.LocalDateTime lockTime) { this.lockTime = lockTime; }
+    public java.time.LocalDate getLastPasswordChangeDate() { return lastPasswordChangeDate; }
+    public void setLastPasswordChangeDate(java.time.LocalDate d) { this.lastPasswordChangeDate = d; }
+    public java.time.LocalDateTime getCreatedDate() { return createdDate; }
+    public void setCreatedDate(java.time.LocalDateTime createdDate) { this.createdDate = createdDate; }
+    public String getCreatedBy() { return createdBy; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+    public java.time.LocalDateTime getLastModifiedDate() { return lastModifiedDate; }
+    public void setLastModifiedDate(java.time.LocalDateTime d) { this.lastModifiedDate = d; }
+    public String getLastModifiedBy() { return lastModifiedBy; }
+    public void setLastModifiedBy(String lastModifiedBy) { this.lastModifiedBy = lastModifiedBy; }
+    public Integer getModifiedCount() { return modifiedCount; }
+    public void setModifiedCount(Integer modifiedCount) { this.modifiedCount = modifiedCount; }
 
     public UserDTO(Long id, String email, String username, String fullName, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;

@@ -267,6 +267,10 @@ public class User extends Auditable implements UserDetails {
     }
 
     public boolean isMultiBrnchAccess() {
+        return Boolean.TRUE.equals(multiBrnchAccess);
+    }
+
+    public Boolean getMultiBrnchAccessOrNull() {
         return multiBrnchAccess;
     }
 
@@ -275,7 +279,7 @@ public class User extends Auditable implements UserDetails {
     }
 
     public boolean isTokenExpired() {
-        return tokenExpired;
+        return Boolean.TRUE.equals(tokenExpired);
     }
 
     public void setTokenExpired(Boolean tokenExpired) {

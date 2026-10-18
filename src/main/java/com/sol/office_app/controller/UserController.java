@@ -1,7 +1,9 @@
 package com.sol.office_app.controller;
 
+import com.sol.office_app.domain.request.UserRequest;
+import com.sol.office_app.domain.response.TemporaryPasswordResponse;
+
 import com.sol.office_app.common.Constant;
-import com.sol.office_app.config.SecurityRule;
 import com.sol.office_app.domain.response.NotificationMessage;
 import com.sol.office_app.dto.*;
 import com.sol.office_app.service.UserService;
@@ -28,31 +30,26 @@ public class UserController {
     private UserService userService;
 
     @GetMapping()
-    @SecurityRule
     public ResponseEntity<Page<UserDTO>> index(@RequestParam(defaultValue = "0") int page,
                                                @RequestParam(defaultValue = "10") int size){
         return new ResponseEntity<>(userService.findAll(PageRequest.of(page, size)), HttpStatus.OK);
     }
 
     @GetMapping("/{id:\\d+}")
-    @SecurityRule
     public ResponseEntity<UserDTO> get(@PathVariable("id") Long id){
         return userService.get(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
+    /** Returns the temporary password once; the user must change it at first sign-in. */
     @PostMapping
-    @SecurityRule
-    public ResponseEntity<UserDTO> save(@RequestBody UserDTO user) {
-        Optional<UserDTO> savedUser = userService.save(user);
-        return savedUser.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    public ResponseEntity<TemporaryPasswordResponse> save(@RequestBody UserRequest user) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(user));
     }
 
     @PutMapping("/{id:\\d+}")
-    @SecurityRule
-    public ResponseEntity<UserDTO> update(@PathVariable Long id, @RequestBody UserDTO user) {
+    public ResponseEntity<UserDTO> update(@PathVariable Long id, @RequestBody UserRequest user) {
         Optional<UserDTO> updatedUserOpt = userService.update(id, user);
         return updatedUserOpt
                 .map(userDTO -> new ResponseEntity<>(userDTO, HttpStatus.OK))
@@ -60,7 +57,6 @@ public class UserController {
     }
 
     @DeleteMapping("/{id:\\d+}")
-    @SecurityRule
     public ResponseEntity<UserDTO> delete(@PathVariable Long id) {
         userService.delete(id);
         return new ResponseEntity<>(HttpStatus.OK);
@@ -79,31 +75,25 @@ public class UserController {
 
     @PutMapping("/me")
     public ResponseEntity<ProfileDTO> me(Principal principal, @RequestBody Map<String, String> body) {
-        Optional<ProfileDTO> objProfile = userService.saveSettings(principal,
-                body.get("amountFormat"),
-                body.get("dateFormat"),
-                body.get("fontSize"),
-                body.get("theme"),
-                body.get("showDash"),
-                body.get("alertOnHome"),
-                body.get("numbermask")
-        );
+        Optional<ProfileDTO> objProfile = userService.saveSettings(principal, body);
         return objProfile
                 .map(userDTO -> new ResponseEntity<>(userDTO, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
+    /** Generates a temporary password (returned once), unlocks the account and ends its sessions. */
     @PutMapping("/{id:\\d+}/reset-password")
-    @SecurityRule
-    public ResponseEntity<UserDTO> resetPassword(@PathVariable Long id, @RequestBody UserDTO user) {
-        Optional<UserDTO> updatedUserOpt = userService.update(id, user);
-        return updatedUserOpt
-                .map(userDTO -> new ResponseEntity<>(userDTO, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<TemporaryPasswordResponse> resetPassword(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.resetPassword(id));
+    }
+
+    @PutMapping("/{id:\\d+}/unlock")
+    public ResponseEntity<UserDTO> unlock(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.unlock(id));
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<?> loginHistory(
+    public ResponseEntity<?> changePassword(
             Principal principal,
             @RequestBody Map<String, String> body
     ) {
@@ -116,7 +106,7 @@ public class UserController {
     }
 
 //    @GetMapping("/login-history")
-//    public ResponseEntity<?> loginHistory(Principal principal) {
+//    public ResponseEntity<?> changePassword(Principal principal) {
 //        LoginDetailsForUserDTO objLoginDetailsForUser = userService.loginHistory(principal);
 //        return ResponseEntity.ok(objLoginDetailsForUser);
 //    }

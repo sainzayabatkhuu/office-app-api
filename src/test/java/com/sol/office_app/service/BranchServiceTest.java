@@ -1,6 +1,7 @@
 package com.sol.office_app.service;
 
 import com.sol.office_app.dto.BranchDTO;
+import com.sol.office_app.exception.ApiException;
 import com.sol.office_app.entity.Branch;
 import com.sol.office_app.mapper.BranchDTOMapper;
 import com.sol.office_app.repository.BranchRepository;
@@ -74,7 +75,7 @@ class BranchServiceTest {
 
     @Test
     void testSave() {
-        BranchDTO input = new BranchDTO(null, "New Branch", "B002", true);
+        BranchDTO input = new BranchDTO("124", "New Branch", "B002", true);
         Branch saved = new Branch();
         saved.setSolId("124");
         saved.setName("New Branch");
@@ -126,7 +127,7 @@ class BranchServiceTest {
 
     @Test
     void testDelete_Found() {
-
+        when(branchRepository.findById("321")).thenReturn(Optional.of(new Branch("321", "Old", "O", true)));
         doNothing().when(branchRepository).deleteById("321");
 
         branchService.delete("321");
@@ -136,6 +137,17 @@ class BranchServiceTest {
     void testDelete_NotFound() {
         when(branchRepository.findById("321")).thenReturn(Optional.empty());
 
-        branchService.delete("321");
+        assertThrows(ApiException.class, () -> branchService.delete("321"));
+    }
+
+    @Test
+    void testSave_requiresCode() {
+        assertThrows(ApiException.class, () -> branchService.save(new BranchDTO(null, "No code", "X", true)));
+    }
+
+    @Test
+    void testSave_rejectsDuplicateCode() {
+        when(branchRepository.existsById("124")).thenReturn(true);
+        assertThrows(ApiException.class, () -> branchService.save(new BranchDTO("124", "Dup", "X", true)));
     }
 }

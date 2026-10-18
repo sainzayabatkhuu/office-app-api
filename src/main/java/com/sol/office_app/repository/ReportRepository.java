@@ -13,15 +13,30 @@ import java.util.List;
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long>{
 
-    @Query("""
-    SELECT r FROM Report r
+    @Query(value = """
+    SELECT DISTINCT r FROM Report r
     INNER JOIN r.rolePermissions rp
     WHERE rp.role.name IN :roleNames
+      AND (:title = '' OR lower(r.title) LIKE lower(concat('%', :title, '%')))
+      AND (:fileName = '' OR lower(r.fileName) LIKE lower(concat('%', :fileName, '%')))
+""", countQuery = """
+    SELECT count(DISTINCT r) FROM Report r
+    INNER JOIN r.rolePermissions rp
+    WHERE rp.role.name IN :roleNames
+      AND (:title = '' OR lower(r.title) LIKE lower(concat('%', :title, '%')))
+      AND (:fileName = '' OR lower(r.fileName) LIKE lower(concat('%', :fileName, '%')))
 """)
-    Page<Report> findReportsByUserRoleNames(@Param("roleNames") List<String> roleNames, Pageable pageable);
+    Page<Report> findReportsByUserRoleNames(@Param("roleNames") List<String> roleNames,
+                                            @Param("title") String title,
+                                            @Param("fileName") String fileName,
+                                            Pageable pageable);
 
-    @Query("""
-    SELECT r FROM Report r
+    @Query(value = """
+    SELECT DISTINCT r FROM Report r
+    JOIN r.rolePermissions rp
+    WHERE rp.role.id IN :roleIds
+""", countQuery = """
+    SELECT count(DISTINCT r) FROM Report r
     JOIN r.rolePermissions rp
     WHERE rp.role.id IN :roleIds
 """)

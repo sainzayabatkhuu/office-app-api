@@ -1,0 +1,7 @@
+# Copy to application-local.properties (git-ignored) and fill in. Environment variables work too
+# (DB_URL, DB_USERNAME, DB_PASSWORD, JWT_SECRET).
+spring.datasource.url=jdbc:mysql://localhost:3306/oracleflexcube
+spring.datasource.username=root
+spring.datasource.password=
+# at least 32 characters, e.g. output of: openssl rand -hex 32
+security.jwt.secret-key=
