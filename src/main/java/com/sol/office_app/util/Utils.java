@@ -1,11 +1,14 @@
 package com.sol.office_app.util;
 
+import com.sol.office_app.exception.ApiException;
+
 import com.sol.office_app.config.CustomUserPrincipal;
 import com.sol.office_app.entity.Report;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.design.JRDesignSubreport;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.export.JRPdfExporter;
@@ -108,24 +111,24 @@ public class Utils {
         if (type == Boolean.class || type == boolean.class) return Boolean.parseBoolean(value);
         if (type == java.util.Date.class) return java.sql.Date.valueOf(value); // expects yyyy-MM-dd
         if (type == java.sql.Date.class) return java.sql.Date.valueOf(value); // expects yyyy-MM-dd
-        if (type == java.sql.Timestamp.class) return Timestamp.valueOf(value); // expects yyyy-MM-dd HH:mm:ss
+        if (type == java.sql.Timestamp.class) return toTimestamp(value);
+        if (type == java.math.BigDecimal.class) return new java.math.BigDecimal(value);
 
         throw new IllegalArgumentException("Unsupported parameter type: " + type.getName());
     }
 
-    public static void validateUserAccess(CustomUserPrincipal maker, Report report) {
-        if (maker.getRules().isEmpty()) {
-            throw new IllegalArgumentException("User has no access rules.");
-        }
-        if (report.getRolePermissions().isEmpty()) {
-            throw new IllegalArgumentException("Report has no role permissions.");
-        }
+    /** Accepts {@code yyyy-MM-dd HH:mm[:ss]} and the ISO form sent by {@code <input type="datetime-local">}. */
+    private static Timestamp toTimestamp(String value) {
+        String v = value.replace('T', ' ');
+        return Timestamp.valueOf(v.length() == 16 ? v + ":00" : v);
+    }
 
-        boolean hasAccess = report.getRolePermissions().stream()
+    public static void validateUserAccess(CustomUserPrincipal maker, Report report) {
+        boolean hasAccess = report.getRolePermissions() != null && report.getRolePermissions().stream()
                 .anyMatch(rp -> maker.getRolePermissions().contains(rp.getRole().getName()));
 
         if (!hasAccess) {
-            throw new IllegalArgumentException("You do not have permission to export this report.");
+            throw ApiException.forbidden("You do not have permission to export this report.");
         }
     }
 
@@ -172,16 +175,18 @@ public class Utils {
         return matcher.find() ? matcher.group(1) : subreportFile;
     }
 
-    public static Map<String, Object> prepareParameters(Report report, CustomUserPrincipal maker, Map<String, Object> params) throws JRException, IOException {
+    public static Map<String, Object> prepareParameters(JasperReport jasperReport, Report report, CustomUserPrincipal maker, Map<String, Object> params) {
         Map<String, Object> convertedParams = new HashMap<>();
-        JasperDesign design = JRXmlLoader.load(
-                new PathResource("uploads/reports/jrxml/" + report.getFileName()).getInputStream());
 
-        for (JRParameter jrParam : design.getParameters()) {
-            if (!jrParam.isSystemDefined() && params.containsKey(jrParam.getName())) {
-                String value = params.get(jrParam.getName()).toString();
-                Object converted = Utils.convertParamValue(value, jrParam.getValueClass());
-                convertedParams.put(jrParam.getName(), converted);
+        for (JRParameter jrParam : jasperReport.getParameters()) {
+            Object raw = params.get(jrParam.getName());
+            if (!jrParam.isSystemDefined() && raw != null && !raw.toString().isBlank()) {
+                try {
+                    convertedParams.put(jrParam.getName(), Utils.convertParamValue(raw.toString().trim(), jrParam.getValueClass()));
+                } catch (RuntimeException e) {
+                    throw ApiException.badRequest("INVALID_PARAMETER",
+                            "Invalid value for parameter '" + jrParam.getName() + "': " + raw);
+                }
             }
         }
 

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Minimal report used by integration tests: one typed parameter, a query, Cyrillic text. -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="it_sample" pageWidth="595" pageHeight="842" columnWidth="555"
+              leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+    <parameter name="reportTitle" class="java.lang.String"/>
+    <parameter name="maker" class="java.lang.String"/>
+    <parameter name="p_count" class="java.lang.Integer">
+        <parameterDescription><![CDATA[Тоо]]></parameterDescription>
+    </parameter>
+    <queryString><![CDATA[select $P{p_count} as n, 'Сайн байна уу' as greeting]]></queryString>
+    <field name="n" class="java.lang.Long"/>
+    <field name="greeting" class="java.lang.String"/>
+    <title>
+        <band height="30">
+            <textField>
+                <reportElement x="0" y="0" width="555" height="20"/>
+                <textFieldExpression><![CDATA[$P{reportTitle} + " / " + $P{maker}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+    <detail>
+        <band height="20">
+            <textField>
+                <reportElement x="0" y="0" width="555" height="20"/>
+                <textFieldExpression><![CDATA[$F{greeting} + " " + $F{n}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+</jasperReport>

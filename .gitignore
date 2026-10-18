@@ -60,3 +60,5 @@ logs/
 
 # Spring Boot Dev Tools
 .spring-boot-devtools.properties
+# Local secrets (git-ignored)
+application-local.properties

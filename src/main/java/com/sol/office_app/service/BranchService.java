@@ -1,5 +1,7 @@
 package com.sol.office_app.service;
 
+import com.sol.office_app.exception.ApiException;
+
 import com.sol.office_app.common.GeneralService;
 import com.sol.office_app.dto.BranchDTO;
 import com.sol.office_app.entity.Branch;
@@ -38,7 +40,14 @@ public class BranchService implements GeneralService<BranchDTO, String> {
 
     @Override
     public Optional<BranchDTO> save(BranchDTO entity) {
+        if (entity.solId() == null || entity.solId().isBlank()) {
+            throw ApiException.badRequest("VALIDATION_FAILED", "Branch code (solId) is required.");
+        }
+        if (branchRepository.existsById(entity.solId())) {
+            throw ApiException.conflict("Branch already exists: " + entity.solId());
+        }
         Branch branch = new Branch();
+        branch.setSolId(entity.solId().trim());
         branch.setName(entity.name());
         branch.setAlternateBranchCode(entity.alternateBranchCode());
         branch.setBranchAvailable(entity.branchAvailable());
@@ -62,6 +71,9 @@ public class BranchService implements GeneralService<BranchDTO, String> {
     }
     @Override
     public void delete(String id) {
+        if (branchRepository.findById(id).isEmpty()) {
+            throw ApiException.notFound("Branch", id);
+        }
         branchRepository.deleteById(id);
     }
 }

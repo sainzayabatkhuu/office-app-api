@@ -1,5 +1,30 @@
 ## office-app-api
 
+## Running locally
+
+Secrets are no longer in `application.properties`. Either export environment variables
+(`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET` — at least 32 characters) or copy
+`application-local.properties.example` to `application-local.properties` (git-ignored) and fill it in.
+
+```
+mvn spring-boot:run
+mvn verify          # unit + integration tests (needs Docker for Testcontainers)
+```
+
+After deploying, run `data/query/2026-10-18_frontend_privileges.sql` once (new privilege for Excel export monitoring).
+
+### API notes for the front-end
+
+* `POST /api/v1/auth/login` → `{accessToken, refreshToken, expiresIn}`; access token lives 30 min.
+  Renew with `POST /api/v1/auth/refresh {refreshToken}` (the old refresh token stops working); sign out with
+  `POST /api/v1/auth/logout {refreshToken}`.
+* Every `/api/v1` call is checked against the caller's privilege rules (`method:path`, e.g. `get:/roles` also
+  covers `/roles/5`). Errors are RFC 7807 JSON with `errorCode` and `message`.
+* Report files: `GET /api/v1/report-histories/{id}/download` (owner, or users who may view report histories).
+  `/generated-reports/**` is no longer served.
+* Notifications: STOMP at `/ws` (SockJS), CONNECT header `Authorization: Bearer …`, subscribe to
+  `/user/queue/notifications`.
+
 
 
 # Steps to Fix Font Issue in JasperReports (iReport 6.x)

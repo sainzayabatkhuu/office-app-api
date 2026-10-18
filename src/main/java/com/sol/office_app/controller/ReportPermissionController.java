@@ -1,21 +1,21 @@
 package com.sol.office_app.controller;
 
 import com.sol.office_app.common.Constant;
-import com.sol.office_app.dto.BranchDTO;
+import com.sol.office_app.domain.request.ReportPermissionRequest;
 import com.sol.office_app.dto.ReportRolePermissionDTO;
 import com.sol.office_app.service.ReportRolePermissionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping(Constant.REPORT_PERMISSION_URL_PREFIX)
 public class ReportPermissionController {
 
-    public final ReportRolePermissionService service;
+    private final ReportRolePermissionService service;
 
     public ReportPermissionController(ReportRolePermissionService service) {
         this.service = service;
@@ -27,5 +27,21 @@ public class ReportPermissionController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size){
         return service.findDynamic(reportId, PageRequest.of(page, size));
+    }
+
+    @PostMapping
+    public ResponseEntity<ReportRolePermissionDTO> create(@RequestBody ReportPermissionRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
+    }
+
+    @PutMapping("/{id:\\d+}")
+    public ReportRolePermissionDTO update(@PathVariable Long id, @RequestBody ReportPermissionRequest request) {
+        return service.update(id, request);
+    }
+
+    @DeleteMapping("/{id:\\d+}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
