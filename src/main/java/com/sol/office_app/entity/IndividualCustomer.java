@@ -13,6 +13,8 @@ import java.time.LocalDate;
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@lombok.Getter
+@lombok.Setter
 public class IndividualCustomer extends Customer {
 
     // Prefixes and Names

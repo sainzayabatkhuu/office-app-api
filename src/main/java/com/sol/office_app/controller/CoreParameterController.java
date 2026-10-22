@@ -39,7 +39,6 @@ public class CoreParameterController {
 
     @PostMapping
     public ResponseEntity<CoreParameterResponse> create(@RequestBody CoreParameterResponse parameter) {
-        Optional<CoreParameterResponse>  savedParam =  service.save(parameter);
         return service.save(parameter)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());

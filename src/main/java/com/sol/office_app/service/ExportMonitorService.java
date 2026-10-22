@@ -1,5 +1,18 @@
 package com.sol.office_app.service;
 
+import com.sol.office_app.config.PrivilegeRules;
+import com.sol.office_app.dto.ExportSummaryDTO;
+import com.sol.office_app.exception.ApiException;
+import org.springframework.core.io.PathResource;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import java.nio.file.Files;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.Comparator;
+import java.util.Map;
+
 import com.sol.office_app.config.CustomUserPrincipal;
 import com.sol.office_app.dto.ExportMonitorDTO;
 import com.sol.office_app.domain.response.NotificationMessage;
@@ -76,12 +89,14 @@ public class ExportMonitorService {
             monitor.setFileName(fileName);
             monitor.setExportStatus("COMPLETED");
             monitor.setResponseTime(LocalDateTime.now());
-            monitor.setTotalRecords(data.size());
+            int records = Math.max(0, data.size() - 1); // first row is the header
+            monitor.setTotalRecords(records);
+            monitor.setFetchSize(records);
             repository.save(monitor);
 
             return new NotificationMessage("success","Export Data",
-                    "Export request submitted successfully! Reference No: " + refNo, null
-                    );
+                    "Export request submitted successfully! Reference No: " + refNo,
+                    Map.of("exportId", String.valueOf(monitor.getId()), "referenceNumber", refNo));
 
         } catch (IOException ioEx) {
             monitor.setExportStatus("UNCREATED");
@@ -97,64 +112,108 @@ public class ExportMonitorService {
         }
     }
 
+    /** Filters are optional; text filters are case-insensitive "contains", dates are inclusive (yyyy-MM-dd). */
     public Page<ExportMonitorDTO> findDynamic(
             String referenceNumber,
             String username,
-            String fetchSize,
             String functionId,
-            String requestedTime,
             String status,
-            PageRequest pageable) {
-        Specification<ExportMonitor> spec = null;
-
-        if (referenceNumber != null && !referenceNumber.isBlank()) {
-            Specification<ExportMonitor> typeSpec = (root, query, cb) ->
-                    cb.like(cb.lower(root.get("referenceNumber")), "%" + referenceNumber + "%");
-            spec = spec == null ? typeSpec : spec.and(typeSpec);
+            String startDate,
+            String endDate,
+            Pageable pageable) {
+        Specification<ExportMonitor> spec = (root, query, cb) -> cb.conjunction();
+        if (hasText(referenceNumber)) {
+            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("referenceNumber")), like(referenceNumber)));
         }
-
-        if (username != null && !username.isBlank()) {
-            Specification<ExportMonitor> codeSpec = (root, query, cb) ->
-                    cb.like(cb.lower(root.get("userId")), "%" + username + "%");
-            spec = spec == null ? codeSpec : spec.and(codeSpec);
+        if (hasText(username)) {
+            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("userId")), like(username)));
         }
-
-        if (fetchSize != null && !fetchSize.isBlank()) {
-            Specification<ExportMonitor> nameSpec = (root, query, cb) ->
-                    cb.equal(root.get("fetchSize"), fetchSize);
-            spec = spec == null ? nameSpec : spec.and(nameSpec);
+        if (hasText(functionId)) {
+            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("functionId")), like(functionId)));
         }
-
-        if (functionId != null && !functionId.isBlank()) {
-            Specification<ExportMonitor> nameSpec = (root, query, cb) ->
-                    cb.equal(cb.lower(root.get("functionId")), functionId);
-            spec = spec == null ? nameSpec : spec.and(nameSpec);
+        if (hasText(status)) {
+            spec = spec.and((root, query, cb) -> cb.equal(cb.upper(root.get("exportStatus")), status.trim().toUpperCase()));
         }
-
-        if (requestedTime != null && !requestedTime.isBlank()) {
-            Specification<ExportMonitor> nameSpec = (root, query, cb) ->
-                    cb.equal(root.get("requestedTime"), requestedTime);
-            spec = spec == null ? nameSpec : spec.and(nameSpec);
+        if (hasText(startDate)) {
+            LocalDateTime from = day(startDate).atStartOfDay();
+            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("requestedTime"), from));
         }
-
-        if (status != null && !status.isBlank()) {
-            Specification<ExportMonitor> nameSpec = (root, query, cb) ->
-                    cb.equal(cb.lower(root.get("exportStatus")), status);
-            spec = spec == null ? nameSpec : spec.and(nameSpec);
+        if (hasText(endDate)) {
+            LocalDateTime to = day(endDate).plusDays(1).atStartOfDay();
+            spec = spec.and((root, query, cb) -> cb.lessThan(root.get("requestedTime"), to));
         }
+        return repository.findAll(spec, pageable).map(ExportMonitorService::toDto);
+    }
 
-        return repository.findAll(spec, pageable)
-                .map(entity -> new ExportMonitorDTO(
+    /** Activity between two dates (inclusive); defaults to the last 30 days. */
+    public ExportSummaryDTO summary(String startDate, String endDate) {
+        LocalDate end = hasText(endDate) ? day(endDate) : LocalDate.now();
+        LocalDate start = hasText(startDate) ? day(startDate) : end.minusDays(29);
+        LocalDateTime from = start.atStartOfDay();
+        LocalDateTime to = end.plusDays(1).atStartOfDay();
+        List<ExportSummaryDTO.Bucket> byStatus = buckets(repository.countByStatus(from, to));
+        return new ExportSummaryDTO(
+                byStatus.stream().mapToLong(ExportSummaryDTO.Bucket::exports).sum(),
+                byStatus.stream().mapToLong(ExportSummaryDTO.Bucket::records).sum(),
+                byStatus,
+                buckets(repository.countByFunction(from, to)),
+                buckets(repository.countByUser(from, to)));
+    }
+
+    /** The generated file; for the user who exported it or anyone who may monitor exports. */
+    public ReportHistoryService.Download download(Long id, CustomUserPrincipal caller) {
+        ExportMonitor monitor = repository.findById(id).orElseThrow(() -> ApiException.notFound("Export", id));
+        if (!caller.getName().equals(monitor.getUserId()) && !PrivilegeRules.allows(caller, "get", "/export-monitor")) {
+            throw ApiException.notFound("Export", id);
+        }
+        if (!"COMPLETED".equalsIgnoreCase(monitor.getExportStatus()) || monitor.getFileName() == null) {
+            throw new ApiException(HttpStatus.CONFLICT, "OUTPUT_NOT_AVAILABLE", "The export file is not available.");
+        }
+        Path base = Path.of("exports").toAbsolutePath().normalize();
+        Path file = base.resolve(monitor.getReferenceNumber()).resolve(monitor.getFileName()).normalize();
+        if (!file.startsWith(base) || !Files.isRegularFile(file)) {
+            throw new ApiException(HttpStatus.GONE, "OUTPUT_DELETED", "The export file no longer exists.");
+        }
+        return new ReportHistoryService.Download(new PathResource(file), monitor.getFileName(),
+                MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+    }
+
+    private static List<ExportSummaryDTO.Bucket> buckets(List<Object[]> rows) {
+        return rows.stream()
+                .map(r -> new ExportSummaryDTO.Bucket(r[0] == null ? "—" : String.valueOf(r[0]),
+                        ((Number) r[1]).longValue(), ((Number) r[2]).longValue()))
+                .sorted(Comparator.comparingLong(ExportSummaryDTO.Bucket::exports).reversed())
+                .limit(20)
+                .toList();
+    }
+
+    private static ExportMonitorDTO toDto(ExportMonitor entity) {
+        return new ExportMonitorDTO(
                 entity.getId(),
                 entity.getReferenceNumber(),
-                entity.getFunctionId(),
                 entity.getUserId(),
+                entity.getFunctionId(),
                 entity.getFetchSize(),
                 entity.getRequestedTime(),
                 entity.getResponseTime(),
                 entity.getExportStatus(),
                 entity.getFileName(),
-                entity.getTotalRecords()
-        ));
+                entity.getTotalRecords());
+    }
+
+    private static boolean hasText(String s) {
+        return s != null && !s.isBlank();
+    }
+
+    private static String like(String s) {
+        return "%" + s.trim().toLowerCase() + "%";
+    }
+
+    private static LocalDate day(String value) {
+        try {
+            return LocalDate.parse(value.trim().substring(0, Math.min(10, value.trim().length())));
+        } catch (DateTimeParseException e) {
+            throw ApiException.badRequest("INVALID_PARAMETER", "Dates must be yyyy-MM-dd");
+        }
     }
 }

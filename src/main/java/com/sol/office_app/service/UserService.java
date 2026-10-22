@@ -9,6 +9,7 @@ import com.sol.office_app.exception.ApiException;
 import com.sol.office_app.repository.RefreshTokenRepository;
 import com.sol.office_app.repository.RoleRepository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.security.SecureRandom;
@@ -93,7 +94,26 @@ public class UserService implements GeneralService<UserDTO, Long> {
 
     @Override
     public Page<UserDTO> search(String query, Pageable pageable) {
-        return null;
+        return search(query, "", "", pageable);
+    }
+
+    public Page<UserDTO> search(String username, String name, String branchCode, Pageable pageable) {
+        Specification<User> spec = (root, q, cb) -> cb.conjunction();
+        if (!isBlank(username)) {
+            String like = "%" + username.trim().toLowerCase() + "%";
+            spec = spec.and((root, q, cb) -> cb.like(cb.lower(root.get("username")), like));
+        }
+        if (!isBlank(name)) {
+            String like = "%" + name.trim().toLowerCase() + "%";
+            spec = spec.and((root, q, cb) -> cb.or(
+                    cb.like(cb.lower(root.get("firstname")), like),
+                    cb.like(cb.lower(root.get("lastname")), like),
+                    cb.like(cb.lower(root.get("email")), like)));
+        }
+        if (!isBlank(branchCode)) {
+            spec = spec.and((root, q, cb) -> cb.equal(root.get("branch").get("solId"), branchCode.trim()));
+        }
+        return userRepository.findAll(spec, pageable).map(userDTOMapper);
     }
 
     @Override

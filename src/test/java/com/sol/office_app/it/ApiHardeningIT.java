@@ -115,7 +115,9 @@ class ApiHardeningIT {
             branches.save(new Branch("101", "Branch 101", "B101", true));
             List<Privilege> all = new ArrayList<>();
             for (String[] p : new String[][]{
-                    {"get:/roles", "View Roles"}, {"post:/roles", "Create Roles"},
+                    {"get:/roles", "View Roles"}, {"post:/roles", "Create Roles"}, {"put:/roles", "Update Roles"},
+                    {"post:/privileges", "Create Privileges"},
+                    {"get:/core-parameters", "View Core Parameters"}, {"post:/core-parameters", "Create Core Parameters"},
                     {"get:/users", "View Users"}, {"post:/users", "Create Users"}, {"put:/users", "Update Users"},
                     {"get:/branches", "View Branches"}, {"post:/branches", "Create Branches"},
                     {"get:/reports/*,get:/reports/report-list,get:/reports/details/*", "View Reports"},
@@ -125,7 +127,10 @@ class ApiHardeningIT {
                     {"put:/report-permissions", "Update Report Permissions"},
                     {"delete:/report-permissions", "Delete Report Permissions"},
                     {"get:/report-histories", "View Background History"},
-                    {"get:/reports/export", "Generate Report"}}) {
+                    {"get:/reports/export", "Generate Report"},
+                    {"get:/customers", "View Customers"}, {"post:/customers", "Create Customers"},
+                    {"put:/customers", "Update Customers"}, {"delete:/customers", "Delete Customers"},
+                    {"get:/export-monitor", "Monitor Excel Exports"}}) {
                 Privilege priv = new Privilege();
                 priv.setValue(p[0]);
                 priv.setDescription(p[1]);
@@ -273,6 +278,138 @@ class ApiHardeningIT {
                 .andExpect(jsonPath("$.branchCode").value("101"));
     }
 
+    // ------------------------------------------------------------------ administration
+
+    @Test
+    void administrationEndpointsForTheFrontEnd() throws Exception {
+        String admin = bearer("admin", "Admin123");
+        // user search
+        mvc.perform(get("/api/v1/users").param("username", "VIEW").header("Authorization", admin))
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].username").value("viewer"));
+        mvc.perform(get("/api/v1/users").param("branchCode", "999").header("Authorization", admin))
+                .andExpect(jsonPath("$.content.length()").value(0));
+
+        // a role is created with privileges and its privileges can be replaced
+        long privilegeId = privileges.findAll().stream().filter(p -> p.getValue().equals("get:/roles")).findFirst().orElseThrow().getId();
+        JsonNode role = body(mvc.perform(post("/api/v1/roles").header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"ROLE_AUDITOR\",\"description\":\"Аудитор\",\"privileges\":[{\"id\":" + privilegeId + "}]}"))
+                .andExpect(status().isOk()));
+        assertThat(role.at("/privileges/0/name").asText()).isEqualTo("get:/roles");
+        mvc.perform(put("/api/v1/roles/" + role.get("id").asText()).header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"ROLE_AUDITOR\",\"description\":\"Аудитор\",\"privileges\":[]}"))
+                .andExpect(jsonPath("$.privileges.length()").value(0));
+        mvc.perform(post("/api/v1/roles").header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"ROLE_AUDITOR\"}"))
+                .andExpect(status().isConflict());
+        mvc.perform(post("/api/v1/roles").header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"bad name\"}"))
+                .andExpect(status().isBadRequest());
+
+        // a core parameter is created exactly once (the controller used to save it twice)
+        mvc.perform(post("/api/v1/core-parameters").header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\":\"it_once\",\"code\":\"1\",\"name\":\"once\"}"))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/v1/core-parameters").param("paramType", "it_once").header("Authorization", admin))
+                .andExpect(jsonPath("$.content.length()").value(1));
+
+        // privilege rules must be method:/path
+        mvc.perform(post("/api/v1/privileges").header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"get/roles\",\"description\":\"x\"}"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errorCode").value("INVALID_RULE"));
+    }
+
+    // ------------------------------------------------------------------ customers and exports
+
+    @Test
+    void customerLifecycleForIndividualAndCorporate() throws Exception {
+        String admin = bearer("admin", "Admin123");
+        String individual = """
+                {"customerType":"R","fullName":"Бат Болд","branchCode":"000",
+                 "individual":{"firstName":"Болд","lastName":"Бат","gender":"MALE","dateOfBirth":"1990-05-01",
+                   "correspondenceAddress":{"line1":"Улаанбаатар","country":"MN"},"sameAsCorrespondenceAddress":"Y",
+                   "contactInfo":{"mobile":"99112233","email":"bold@example.mn"}}}""";
+        JsonNode created = body(mvc.perform(post("/api/v1/customers").header("Authorization", admin)
+                        .contentType(MediaType.APPLICATION_JSON).content(individual))
+                .andExpect(status().isCreated()));
+        String number = created.get("customerNumber").asText();
+        assertThat(number).hasSize(9).containsOnlyDigits();
+        assertThat(created.get("id").asText()).isEqualTo("R" + number);
+        assertThat(created.at("/individual/permanentAddress/line1").asText()).isEqualTo("Улаанбаатар");
+
+        // the next number follows, and a corporate customer lives in its own table
+        JsonNode corporate = body(mvc.perform(post("/api/v1/customers").header("Authorization", admin)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"customerType\":\"C\",\"fullName\":\"Нэгдсэн ХХК\",\"branchCode\":\"101\","
+                                + "\"corporate\":{\"name\":\"Нэгдсэн ХХК\",\"incorporation\":{\"capital\":1000000}}}"))
+                .andExpect(status().isCreated()));
+        assertThat(Long.parseLong(corporate.get("customerNumber").asText())).isEqualTo(Long.parseLong(number) + 1);
+        assertThat(corporate.get("id").asText()).startsWith("C");
+
+        mvc.perform(get("/api/v1/customers").param("name", "нэгдсэн").header("Authorization", admin))
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].corporate.name").value("Нэгдсэн ХХК"));
+        mvc.perform(get("/api/v1/customers").param("customerType", "R").header("Authorization", admin))
+                .andExpect(jsonPath("$.content[0].individual.firstName").value("Болд"));
+
+        // validation: required names, valid branch, unique number, immutable type
+        mvc.perform(post("/api/v1/customers").header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"customerType\":\"R\",\"fullName\":\"x\",\"branchCode\":\"000\",\"individual\":{}}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/api/v1/customers").header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"customerType\":\"C\",\"fullName\":\"x\",\"branchCode\":\"999\",\"corporate\":{\"name\":\"x\"}}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/api/v1/customers").header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"customerType\":\"C\",\"customerNumber\":\"" + number + "\",\"fullName\":\"x\","
+                                + "\"branchCode\":\"000\",\"corporate\":{\"name\":\"x\"}}"))
+                .andExpect(status().isConflict());
+        String id = created.get("id").asText();
+        mvc.perform(put("/api/v1/customers/" + id).header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"customerType\":\"C\",\"fullName\":\"x\",\"branchCode\":\"000\"}"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errorCode").value("TYPE_IMMUTABLE"));
+
+        String modified = individual.replace("\"Бат Болд\"", "\"Бат Болд-Эрдэнэ\"");
+        mvc.perform(put("/api/v1/customers/" + id).header("Authorization", admin).contentType(MediaType.APPLICATION_JSON).content(modified))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.fullName").value("Бат Болд-Эрдэнэ"));
+
+        // users without the rule cannot see customers
+        mvc.perform(get("/api/v1/customers").header("Authorization", bearer("viewer", "Viewer123"))).andExpect(status().isForbidden());
+
+        mvc.perform(delete("/api/v1/customers/" + id).header("Authorization", admin)).andExpect(status().isNoContent());
+        mvc.perform(get("/api/v1/customers/" + id).header("Authorization", admin)).andExpect(status().isNotFound());
+        mvc.perform(delete("/api/v1/customers/" + id).header("Authorization", admin)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void excelExportsAreMonitoredSummarisedAndDownloadable() throws Exception {
+        String admin = bearer("admin", "Admin123");
+        String viewer = bearer("viewer", "Viewer123");
+        String rows = "[[\"Код\",\"Нэр\"],[\"1\",\"Нэг\"],[\"2\",\"Хоёр\"]]";
+        JsonNode exported = body(mvc.perform(post("/api/v1/export-monitor/export").param("functionId", "ITEXP")
+                        .header("Authorization", viewer).contentType(MediaType.APPLICATION_JSON).content(rows))
+                .andExpect(status().isOk()));
+        long exportId = exported.at("/data/exportId").asLong();
+        assertThat(exportId).isPositive();
+
+        mvc.perform(get("/api/v1/export-monitor").param("functionId", "itexp").param("username", "VIEW")
+                        .header("Authorization", admin))
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].totalRecords").value(2))
+                .andExpect(jsonPath("$.content[0].functionId").value("ITEXP"));
+
+        mvc.perform(get("/api/v1/export-monitor/summary").header("Authorization", admin))
+                .andExpect(jsonPath("$.byFunction[?(@.key == 'ITEXP')].records").value(2));
+
+        // the exporting user and monitors may download; for others the export does not exist
+        mvc.perform(get("/api/v1/export-monitor/" + exportId + "/download").header("Authorization", viewer))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/v1/export-monitor/" + exportId + "/download").header("Authorization", admin))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/v1/export-monitor/" + exportId + "/download").header("Authorization", bearer("teller", "Teller123")))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/export-monitor/summary").header("Authorization", viewer)).andExpect(status().isForbidden());
+    }
+
     // ------------------------------------------------------------------ reports
 
     @Test
@@ -289,9 +426,17 @@ class ApiHardeningIT {
                         .param("id", String.valueOf(reportId)).param("format", "pdf").param("p_count", "7"))
                 .andExpect(status().isOk()));
         String historyId = run.at("/data/historyId").asText();
+        assertThat(run.at("/data/mode").asText()).isEqualTo("V");
         byte[] pdf = mvc.perform(get("/api/v1/report-histories/" + historyId + "/download").header("Authorization", admin))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
         assertThat(new String(Arrays.copyOf(pdf, 4), StandardCharsets.US_ASCII)).isEqualTo("%PDF");
+        // history keeps the submitted parameters, filtered by report-list title
+        mvc.perform(get("/api/v1/report-histories").header("Authorization", admin))
+                .andExpect(jsonPath("$.content[0].parameters").value(org.hamcrest.Matchers.matchesPattern("(?s).*\"p_count\":\\s*\"7\".*")));
+        mvc.perform(get("/api/v1/reports/report-list").param("title", "тест").header("Authorization", admin))
+                .andExpect(jsonPath("$.content.length()").value(1));
+        mvc.perform(get("/api/v1/reports/report-list").param("title", "nothing-like-this").header("Authorization", admin))
+                .andExpect(jsonPath("$.content.length()").value(0));
         // a user without history rights cannot fetch someone else's file
         mvc.perform(get("/api/v1/report-histories/" + historyId + "/download").header("Authorization", bearer("teller", "Teller123")))
                 .andExpect(status().isNotFound());
@@ -323,6 +468,7 @@ class ApiHardeningIT {
                         .param("id", String.valueOf(reportId)).param("format", "xlsx").param("p_count", "3"))
                 .andExpect(status().isOk()));
         assertThat(queued.get("title").asText()).isEqualTo("Export Scheduled");
+        assertThat(queued.at("/data/mode").asText()).isEqualTo("B");
 
         Map<String, Object> note = inbox.poll(30, TimeUnit.SECONDS);
         assertThat(note).isNotNull().containsEntry("type", "success");

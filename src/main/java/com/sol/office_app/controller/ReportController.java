@@ -72,11 +72,14 @@ public class ReportController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    /** Reports the caller's roles may run, optionally filtered by title / file name. */
     @GetMapping(value = "/report-list", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Page<ReportDTO> getList(@RequestParam(defaultValue = "0") int page,
+    public Page<ReportDTO> getList(@RequestParam(defaultValue = "") String title,
+                                   @RequestParam(defaultValue = "") String fileName,
+                                   @RequestParam(defaultValue = "0") int page,
                                    @RequestParam(defaultValue = "10") int size,
                                    Authentication authentication) {
-        return reportService.getList(authentication, PageRequest.of(page, size));
+        return reportService.findDynamic(title, fileName, authentication, PageRequest.of(page, size));
     }
 
     @GetMapping("/details/{id}")

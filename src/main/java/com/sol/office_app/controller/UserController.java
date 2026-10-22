@@ -29,10 +29,15 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    /** Users, optionally filtered (all filters are case-insensitive "contains", branch is exact). */
     @GetMapping()
-    public ResponseEntity<Page<UserDTO>> index(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<Page<UserDTO>> index(@RequestParam(defaultValue = "") String username,
+                                               @RequestParam(defaultValue = "") String name,
+                                               @RequestParam(defaultValue = "") String branchCode,
+                                               @RequestParam(defaultValue = "0") int page,
                                                @RequestParam(defaultValue = "10") int size){
-        return new ResponseEntity<>(userService.findAll(PageRequest.of(page, size)), HttpStatus.OK);
+        return new ResponseEntity<>(userService.search(username, name, branchCode,
+                PageRequest.of(page, size, Sort.by("username"))), HttpStatus.OK);
     }
 
     @GetMapping("/{id:\\d+}")

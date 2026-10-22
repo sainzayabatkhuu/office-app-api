@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import java.util.concurrent.Executor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sol.office_app.domain.response.NotificationMessage;
 import com.sol.office_app.dto.ReportDTO;
 import com.sol.office_app.dto.ReportParameterDTO;
@@ -65,6 +67,8 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
     @Autowired
     @Qualifier(AsyncConfig.REPORT_EXECUTOR)
     private Executor reportExecutor;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private static final Logger log = LoggerFactory.getLogger(ReportService.class);
     private static final Set<String> SUPPORTED_FORMATS = Set.of("pdf", "xlsx", "docx", "pptx", "odt");
@@ -300,6 +304,7 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
                 .findFirst()
                 .orElse(RUN_NOW));
         history.setReportOutputFile(generatedFileName);
+        history.setParameters(toJson(params));
         reportHistoryRepository.save(history);
 
         JasperReport jasperReport;
@@ -320,7 +325,9 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
                     "The report template could not be compiled.");
         }
 
-        Map<String, String> data = Map.of("historyId", String.valueOf(history.getId()), "fileName", generatedFileName);
+        // mode: V = generated now (download right away), B = queued (watch the history / notifications)
+        Map<String, String> data = Map.of("historyId", String.valueOf(history.getId()), "fileName", generatedFileName,
+                "mode", history.getRunInBackground());
 
         if (!RUN_IN_BACKGROUND.equals(history.getRunInBackground())) {
             try {
@@ -353,6 +360,17 @@ public class ReportService implements GeneralService<ReportDTO, Long> {
 
         return new NotificationMessage("success", "Export Scheduled",
                 "The report export has been scheduled in the background.", data);
+    }
+
+    /** The user's parameter values as submitted (request plumbing like id/format left out), for the history. */
+    private String toJson(Map<String, Object> params) {
+        Map<String, Object> userParams = new TreeMap<>(params);
+        userParams.keySet().removeAll(Set.of("id", "format"));
+        try {
+            return objectMapper.writeValueAsString(userParams);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
     }
 
     /** Fills against the database and writes the output; the connection is always returned to the pool. */

@@ -37,7 +37,8 @@ public class SecurityConfig {
             "/api/v1/users/user-limits",
             "/api/v1/users/disallowed-branches",
             "/api/v1/report-histories/*/download",
-            "/api/v1/export-monitor/export"
+            "/api/v1/export-monitor/export",
+            "/api/v1/export-monitor/*/download"
     };
 
     @Bean

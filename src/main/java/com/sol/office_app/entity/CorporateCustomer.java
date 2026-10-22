@@ -14,6 +14,8 @@ import java.time.LocalTime;
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@lombok.Getter
+@lombok.Setter
 public class CorporateCustomer extends Customer {
 
     /**

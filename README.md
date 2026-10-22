@@ -22,6 +22,12 @@ After deploying, run `data/query/2026-10-18_frontend_privileges.sql` once (new p
   covers `/roles/5`). Errors are RFC 7807 JSON with `errorCode` and `message`.
 * Report files: `GET /api/v1/report-histories/{id}/download` (owner, or users who may view report histories).
   `/generated-reports/**` is no longer served.
+* Excel exports: `GET /api/v1/export-monitor` (filters `referenceNumber`, `username`, `functionId`, `status`,
+  `startDate`, `endDate`), `GET /api/v1/export-monitor/summary` (last 30 days by default) and
+  `GET /api/v1/export-monitor/{id}/download` (the exporting user, or users with `get:/export-monitor`).
+* Customers (STDCIF): `/api/v1/customers` CRUD, id = type letter + customer number (`R000000001`). Individual (R)
+  details go in `individual`, corporate (C) in `corporate`; an empty `customerNumber` is generated and the type
+  cannot change after creation.
 * Notifications: STOMP at `/ws` (SockJS), CONNECT header `Authorization: Bearer …`, subscribe to
   `/user/queue/notifications`.
 
