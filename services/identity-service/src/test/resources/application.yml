@@ -1,0 +1,36 @@
+# Test configuration: no config-server / Eureka; the datasource comes from Testcontainers (@ServiceConnection).
+spring:
+  application:
+    name: identity-service
+  cloud:
+    config:
+      enabled: false
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  threads:
+    virtual:
+      enabled: true
+
+eureka:
+  client:
+    enabled: false
+
+management:
+  tracing:
+    enabled: false
+
+office:
+  security:
+    public-paths:
+      - /api/v1/auth/login
+      - /api/v1/auth/refresh
+      - /.well-known/jwks.json
+  identity:
+    jwt:
+      issuer: office-identity
+    login:
+      max-failed-attempts: 3
+      lock-duration: 15m
+      permanent-lock-after: 10

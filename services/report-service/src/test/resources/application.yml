@@ -1,0 +1,33 @@
+# Test configuration: no config-server / Eureka. Datasources and RabbitMQ come from Testcontainers.
+spring:
+  application:
+    name: report-service
+  cloud:
+    config:
+      enabled: false
+    openfeign:
+      circuitbreaker:
+        enabled: false
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:1/unused   # tests authenticate with spring-security-test's jwt()
+
+eureka:
+  client:
+    enabled: false
+
+management:
+  tracing:
+    enabled: false
+
+office:
+  report:
+    execution:
+      max-concurrent: 2
+      sync-timeout: 30s

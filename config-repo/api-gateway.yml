@@ -1,0 +1,85 @@
+office:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4300,http://localhost:3000,http://localhost:5173}
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            connect-timeout: 5000
+            response-timeout: 180s
+          default-filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+          routes:
+            - id: identity-service
+              uri: lb://identity-service
+              predicates:
+                - Path=/api/v1/auth/**,/api/v1/users/**,/api/v1/employees/**,/api/v1/roles/**,/api/v1/privileges/**,/api/v1/branches/**,/api/v1/departments/**,/api/v1/positions/**,/api/v1/core-parameters/**,/api/v1/customers/**,/.well-known/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: identity-service
+                    fallbackUri: forward:/fallback/identity-service
+
+            - id: report-service
+              uri: lb://report-service
+              predicates:
+                - Path=/api/v1/reports/**,/api/v1/report-categories/**,/api/v1/report-executions/**,/api/v1/export-monitor/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: report-service
+                    fallbackUri: forward:/fallback/report-service
+
+            - id: notification-service
+              uri: lb://notification-service
+              predicates:
+                - Path=/api/v1/notifications/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: notification-service
+                    fallbackUri: forward:/fallback/notification-service
+
+            - id: notification-websocket
+              uri: lb:ws://notification-service
+              predicates:
+                - Path=/ws/**
+
+            # OpenAPI documents of each service, aggregated in the gateway's Swagger UI
+            - id: identity-service-docs
+              uri: lb://identity-service
+              predicates:
+                - Path=/identity-service/v3/api-docs
+              filters:
+                - RewritePath=/identity-service/(?<path>.*), /$\{path}
+            - id: report-service-docs
+              uri: lb://report-service
+              predicates:
+                - Path=/report-service/v3/api-docs
+              filters:
+                - RewritePath=/report-service/(?<path>.*), /$\{path}
+            - id: notification-service-docs
+              uri: lb://notification-service
+              predicates:
+                - Path=/notification-service/v3/api-docs
+              filters:
+                - RewritePath=/notification-service/(?<path>.*), /$\{path}
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: identity-service
+        url: /identity-service/v3/api-docs
+      - name: report-service
+        url: /report-service/v3/api-docs
+      - name: notification-service
+        url: /notification-service/v3/api-docs
+
+resilience4j:
+  timelimiter:
+    instances:
+      report-service:
+        timeout-duration: 180s   # synchronous report generation can be slow

@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: notification-service
+  cloud:
+    config:
+      enabled: false
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+eureka:
+  client:
+    enabled: false
+
+management:
+  tracing:
+    enabled: false
+
+office:
+  security:
+    public-paths:
+      - /ws/**

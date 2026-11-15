@@ -1,0 +1,146 @@
+<jasperReport name="RPT0002" language="java" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="5155da4a-1219-4a4e-a4df-13e07fbfff48">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MySQL JDBC&#xa;"/>
+	<property name="com.jaspersoft.studio.report.description" value=""/>
+	<parameter name="reportTitle" class="java.lang.String"/>
+	<parameter name="maker" class="java.lang.String"/>
+	<parameter name="reportDate" class="java.util.Date">
+		<defaultValueExpression><![CDATA[new java.util.Date()]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<description><![CDATA[SUBREPORT_DIR is commonly used as a base directory path that contains all the subreports.]]></description>
+	</parameter>
+	<query language="SQL"><![CDATA[CALL sp_role_report();]]></query>
+	<field name="role_id" class="java.lang.Long">
+		<property name="com.jaspersoft.studio.field.name" value="id"/>
+		<property name="com.jaspersoft.studio.field.label" value="role_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="role"/>
+	</field>
+	<field name="name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="name"/>
+		<property name="com.jaspersoft.studio.field.label" value="name"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="role"/>
+	</field>
+	<field name="description" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="description"/>
+		<property name="com.jaspersoft.studio.field.label" value="description"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="role"/>
+	</field>
+	<field name="total_users" class="java.lang.Long">
+		<property name="com.jaspersoft.studio.field.name" value="total_users"/>
+		<property name="com.jaspersoft.studio.field.label" value="total_users"/>
+	</field>
+	<background splitType="Stretch"/>
+	<title height="48" splitType="Stretch">
+		<element kind="textField" uuid="ccdd03f9-ee04-4867-9d8a-fe37c012ce01" x="2" y="0" width="550" height="30" fontName="Arial unicode ms" fontSize="14.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<expression><![CDATA[$P{reportTitle}]]></expression>
+		</element>
+	</title>
+	<pageHeader height="36" splitType="Stretch">
+		<element kind="textField" uuid="f1c85370-d852-4622-b135-d95cf5a74399" x="353" y="0" width="199" height="20" fontName="Arial unicode ms" hTextAlign="Right" vTextAlign="Middle">
+			<expression><![CDATA["Гаргасан:" + $P{maker}]]></expression>
+		</element>
+		<element kind="textField" uuid="3db75b43-03bf-4fd8-8954-0bde2c055676" x="0" y="0" width="210" height="20" fontName="Arial unicode ms" hTextAlign="Left" vTextAlign="Middle">
+			<expression><![CDATA["Огноо:" + new java.text.SimpleDateFormat("yyyy-MM-dd").format($P{reportDate})]]></expression>
+		</element>
+	</pageHeader>
+	<columnHeader height="31" splitType="Stretch">
+		<element kind="staticText" uuid="25cac259-92de-4261-bf3a-b63471a4fa89" x="0" y="1" width="100" height="30" forecolor="#FFFFFF" backcolor="#00385A" mode="Opaque" fontName="Arial unicode ms" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0de92ef6-e2f7-42b0-b655-69bf2256aab9"/>
+			<box padding="5">
+				<topPen lineWidth="0.25"/>
+				<leftPen lineWidth="0.25"/>
+				<bottomPen lineWidth="0.25"/>
+			</box>
+			<text><![CDATA[ID]]></text>
+		</element>
+		<element kind="staticText" uuid="9ae95f06-23f6-46f9-bc4b-8e5fa97d1085" x="100" y="1" width="100" height="30" forecolor="#FFFFFF" backcolor="#00385A" mode="Opaque" fontName="Arial unicode ms" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="16ed6c1d-45ac-4e85-bdcf-4f8a4a4f5e59"/>
+			<box padding="5">
+				<topPen lineWidth="0.25"/>
+				<leftPen lineWidth="0.25"/>
+				<bottomPen lineWidth="0.25"/>
+			</box>
+			<text><![CDATA[Дүрийн нэр]]></text>
+		</element>
+		<element kind="staticText" uuid="4858f12d-55f7-4619-9d35-2886536c34bd" x="200" y="1" width="253" height="30" forecolor="#FFFFFF" backcolor="#00385A" mode="Opaque" fontName="Arial unicode ms" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="94bf53ec-c53a-4398-b352-30c77f6bbad7"/>
+			<box padding="5">
+				<topPen lineWidth="0.25"/>
+				<leftPen lineWidth="0.25"/>
+				<bottomPen lineWidth="0.25"/>
+				<rightPen lineWidth="0.25"/>
+			</box>
+			<text><![CDATA[Тайлбар
+]]></text>
+		</element>
+		<element kind="staticText" uuid="e04e4f61-3628-40e5-b5f0-d781ea2fbac3" x="453" y="1" width="100" height="30" forecolor="#FFFFFF" backcolor="#00385A" mode="Opaque" fontName="Arial unicode ms" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="16ed6c1d-45ac-4e85-bdcf-4f8a4a4f5e59"/>
+			<box padding="5">
+				<topPen lineWidth="0.25"/>
+				<leftPen lineWidth="0.25"/>
+				<bottomPen lineWidth="0.25"/>
+			</box>
+			<text><![CDATA[Нийт хэрэглэгчийн тоо]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="31" splitType="Stretch">
+			<element kind="textField" uuid="e2bb822a-94f7-44e8-bab2-d7521251b939" x="0" y="0" width="100" height="30" fontName="Arial unicode ms" vTextAlign="Middle">
+				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0de92ef6-e2f7-42b0-b655-69bf2256aab9"/>
+				<box padding="5">
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<expression><![CDATA[$F{role_id}]]></expression>
+			</element>
+			<element kind="textField" uuid="6af49b14-1cf2-41f9-8240-98a741662b68" x="100" y="0" width="100" height="30" fontName="Arial unicode ms" vTextAlign="Middle">
+				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="16ed6c1d-45ac-4e85-bdcf-4f8a4a4f5e59"/>
+				<box padding="5">
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<expression><![CDATA[$F{name}]]></expression>
+			</element>
+			<element kind="textField" uuid="b00bd172-6a84-4126-bf44-8e1ca9f91e32" x="200" y="0" width="253" height="30" fontName="Arial unicode ms" hTextAlign="Left" vTextAlign="Middle">
+				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="94bf53ec-c53a-4398-b352-30c77f6bbad7"/>
+				<box padding="5">
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<expression><![CDATA[$F{description}]]></expression>
+			</element>
+			<element kind="textField" uuid="22858408-546d-4a8f-ace6-a3e4ccbe1a6e" x="453" y="0" width="100" height="30" backcolor="#D2DBEB" mode="Opaque" fontName="Arial unicode ms" hTextAlign="Center" vTextAlign="Middle">
+				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="94bf53ec-c53a-4398-b352-30c77f6bbad7"/>
+				<box padding="5">
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<expression><![CDATA[$F{total_users}]]></expression>
+			</element>
+		</band>
+	</detail>
+	<columnFooter height="50" splitType="Stretch"/>
+	<pageFooter height="59" splitType="Stretch"/>
+	<summary height="50" splitType="Stretch">
+		<element kind="subreport" uuid="587e1344-e981-474b-9204-7e2299108e16" x="2" y="4" width="551" height="16" stretchType="ElementGroupHeight">
+			<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+			<expression><![CDATA[($P{SUBREPORT_DIR} == null ? "RPT0002_SUB.jasper" : $P{SUBREPORT_DIR} + "RPT0002_SUB.jasper")]]></expression>
+		</element>
+	</summary>
+	<noData height="99">
+		<element kind="textField" uuid="8fd75bde-508f-49a1-afd6-c5eea14bdd87" x="0" y="3" width="550" height="30" fontName="Arial unicode ms" fontSize="14.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<expression><![CDATA[$P{reportTitle}]]></expression>
+		</element>
+		<element kind="staticText" uuid="db0b795c-c18d-48f3-8e0a-eb22522256dd" x="0" y="50" width="553" height="49" forecolor="#FF0E0A" fontName="Arial unicode ms" fontSize="12.0" underline="false" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[*** ⚠ No data available to display. ***
+Please adjust your filters or date range and try again.]]></text>
+		</element>
+	</noData>
+</jasperReport>

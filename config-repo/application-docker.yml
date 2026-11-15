@@ -1,0 +1,24 @@
+# Active when SPRING_PROFILES_ACTIVE=docker (docker-compose). Hostnames are compose service names.
+office:
+  db:
+    host: mysql
+    port: 3306
+
+spring:
+  rabbitmq:
+    host: rabbitmq
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://identity-service:8081/.well-known/jwks.json
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka/
+
+management:
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans

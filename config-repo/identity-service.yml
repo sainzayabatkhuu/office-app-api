@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${office.db.host}:${office.db.port}/office_identity?${office.db.options}
+    username: ${office.db.username}
+    password: ${office.db.password}
+
+office:
+  security:
+    public-paths:
+      - /api/v1/auth/login
+      - /api/v1/auth/refresh
+      - /.well-known/jwks.json
+  identity:
+    jwt:
+      issuer: ${JWT_ISSUER:office-identity}
+      key-id: ${JWT_KEY_ID:office-key-1}
+      # PEM files (PKCS#8 private key / X.509 public key). Leave empty in dev to use an ephemeral key pair;
+      # in any shared environment they MUST be set, otherwise every restart invalidates all tokens.
+      private-key-location: ${JWT_PRIVATE_KEY_LOCATION:}
+      public-key-location: ${JWT_PUBLIC_KEY_LOCATION:}
+      access-token-ttl: ${JWT_ACCESS_TTL:30m}
+      refresh-token-ttl: ${JWT_REFRESH_TTL:7d}
+    login:
+      max-failed-attempts: 5          # temporary lock after this many consecutive failures
+      lock-duration: 15m
+      permanent-lock-after: 10        # admin must unlock after this many
+    password:
+      expiry-days: 90

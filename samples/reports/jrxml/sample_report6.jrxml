@@ -1,0 +1,127 @@
+<jasperReport name="sample_report2" language="java" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="e04446ac-04cb-4c48-9e93-ef914ebc26b4">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MySQL JDBC&#xa;"/>
+	<property name="com.jaspersoft.studio.report.description" value=""/>
+	<parameter name="beginDate" class="java.sql.Date">
+		<description><![CDATA[Begin Date:]]></description>
+	</parameter>
+	<parameter name="reportTitle" class="java.lang.String"/>
+	<parameter name="maker" class="java.lang.String"/>
+	<parameter name="endDate" class="java.sql.Date">
+		<description><![CDATA[End Date:]]></description>
+	</parameter>
+	<query language="SQL"><![CDATA[CALL GetCustomersBornDates($P{beginDate}, $P{endDate} );]]></query>
+	<field name="id" class="java.lang.Long">
+		<property name="com.jaspersoft.studio.field.name" value="id"/>
+		<property name="com.jaspersoft.studio.field.label" value="id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="customer"/>
+	</field>
+	<field name="name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="name"/>
+		<property name="com.jaspersoft.studio.field.label" value="name"/>
+	</field>
+	<field name="age" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="age"/>
+		<property name="com.jaspersoft.studio.field.label" value="age"/>
+	</field>
+	<background splitType="Stretch"/>
+	<title height="48" splitType="Stretch">
+		<element kind="textField" uuid="4169d611-5138-47d8-b48b-f36fa563baaa" x="2" y="0" width="550" height="30" fontSize="14.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<expression><![CDATA[$P{reportTitle}]]></expression>
+		</element>
+	</title>
+	<pageHeader height="96" splitType="Stretch">
+		<element kind="textField" uuid="816e06d6-b0f7-485c-ab43-02c567326448" x="453" y="1" width="100" height="30" vTextAlign="Middle">
+			<expression><![CDATA[$P{maker}]]></expression>
+		</element>
+		<element kind="textField" uuid="d8bdb25b-cd02-4fd6-b687-a559a7b68a86" x="353" y="2" width="100" height="30" hTextAlign="Right" vTextAlign="Middle">
+			<expression><![CDATA["Maker:"]]></expression>
+		</element>
+		<element kind="textField" uuid="c921d28a-b69e-4079-9f7e-1319056f4049" x="100" y="10" width="100" height="30" vTextAlign="Middle">
+			<expression><![CDATA[$P{beginDate}]]></expression>
+		</element>
+		<element kind="textField" uuid="c7444b28-e57e-4af9-a42a-0863a7bfcb1f" x="0" y="10" width="100" height="30" hTextAlign="Right" vTextAlign="Middle">
+			<expression><![CDATA["Start Date:"]]></expression>
+		</element>
+		<element kind="textField" uuid="314988de-31b9-4ca1-9c18-94bf2a0e51c2" x="0" y="40" width="100" height="30" hTextAlign="Right" vTextAlign="Middle">
+			<expression><![CDATA["End Date:"]]></expression>
+		</element>
+		<element kind="textField" uuid="ecf64a90-9b8e-4a15-9ed4-553cdd0dbf69" x="100" y="40" width="100" height="30" hTextAlign="Left" vTextAlign="Middle">
+			<expression><![CDATA[$P{endDate}]]></expression>
+		</element>
+	</pageHeader>
+	<columnHeader height="32" splitType="Stretch">
+		<element kind="staticText" uuid="30694bfb-69a6-40bb-8014-dc011c8d46b4" x="0" y="1" width="100" height="30" hTextAlign="Left" vTextAlign="Middle">
+			<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0de92ef6-e2f7-42b0-b655-69bf2256aab9"/>
+			<box>
+				<topPen lineWidth="0.25"/>
+				<leftPen lineWidth="0.25"/>
+				<bottomPen lineWidth="0.25"/>
+			</box>
+			<text><![CDATA[id]]></text>
+		</element>
+		<element kind="staticText" uuid="23421c5f-ce5c-4006-9ef5-764030f61e43" x="100" y="1" width="100" height="30" hTextAlign="Left" vTextAlign="Middle">
+			<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="16ed6c1d-45ac-4e85-bdcf-4f8a4a4f5e59"/>
+			<box>
+				<topPen lineWidth="0.25"/>
+				<leftPen lineWidth="0.25"/>
+				<bottomPen lineWidth="0.25"/>
+			</box>
+			<text><![CDATA[name]]></text>
+		</element>
+		<element kind="staticText" uuid="84db523d-b220-4dad-93fe-8cbb308e9020" x="200" y="1" width="100" height="30" hTextAlign="Left" vTextAlign="Middle">
+			<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="94bf53ec-c53a-4398-b352-30c77f6bbad7"/>
+			<box>
+				<topPen lineWidth="0.25"/>
+				<leftPen lineWidth="0.25"/>
+				<bottomPen lineWidth="0.25"/>
+				<rightPen lineWidth="0.25"/>
+			</box>
+			<text><![CDATA[age]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="30" splitType="Stretch">
+			<element kind="textField" uuid="63f610b7-c8ef-4be1-ad99-565f6fd9b1db" x="0" y="0" width="100" height="30" vTextAlign="Middle">
+				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0de92ef6-e2f7-42b0-b655-69bf2256aab9"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<expression><![CDATA[$F{id}]]></expression>
+			</element>
+			<element kind="textField" uuid="59b7e26c-2a84-4493-9675-7fdf42838c55" x="100" y="0" width="100" height="30" vTextAlign="Middle">
+				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="16ed6c1d-45ac-4e85-bdcf-4f8a4a4f5e59"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<expression><![CDATA[$F{name}]]></expression>
+			</element>
+			<element kind="textField" uuid="5c2fcdd0-e004-4f80-91dc-689943bb4324" x="200" y="0" width="100" height="30" hTextAlign="Center" vTextAlign="Middle">
+				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="94bf53ec-c53a-4398-b352-30c77f6bbad7"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<expression><![CDATA[$F{age}]]></expression>
+			</element>
+		</band>
+	</detail>
+	<columnFooter height="45" splitType="Stretch"/>
+	<pageFooter height="54" splitType="Stretch"/>
+	<summary height="42" splitType="Stretch"/>
+	<noData height="99">
+		<element kind="textField" uuid="1b56098a-a5ee-46a3-8ae8-dcb2dd1a9a42" x="0" y="3" width="550" height="30" fontSize="14.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<expression><![CDATA[$P{reportTitle}]]></expression>
+		</element>
+		<element kind="staticText" uuid="abe8ea46-7fec-4302-96e7-0aa072a3059d" x="0" y="50" width="553" height="49" forecolor="#FF0E0A" fontName="Arial" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[*** ⚠ No data available to display. ***
+Please adjust your filters or date range and try again.]]></text>
+		</element>
+	</noData>
+</jasperReport>

@@ -1,0 +1,20 @@
+server:
+  port: ${SERVER_PORT:8888}
+
+spring:
+  application:
+    name: config-server
+  profiles:
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          # Works when started from the repo root, the module dir, or in Docker (mounted at /config-repo).
+          search-locations: ${CONFIG_REPO_LOCATION:file:./config-repo/,file:../../config-repo/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

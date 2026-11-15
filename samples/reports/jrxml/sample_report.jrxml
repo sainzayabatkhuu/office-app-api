@@ -1,0 +1,121 @@
+<jasperReport name="sample_report" language="java" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="2705f10c-0e1d-4b26-9929-c097deb3ff2b">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MySQL JDBC&#xa;"/>
+	<parameter name="age" class="java.lang.Integer">
+		<description><![CDATA[Age]]></description>
+	</parameter>
+	<parameter name="reportTitle" class="java.lang.String"/>
+	<parameter name="maker" class="java.lang.String"/>
+	<query language="SQL"><![CDATA[CALL GetPeopleOlderThan($P{age});]]></query>
+	<field name="id" class="java.lang.Long">
+		<property name="com.jaspersoft.studio.field.name" value="id"/>
+		<property name="com.jaspersoft.studio.field.label" value="id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="customer"/>
+	</field>
+	<field name="name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="name"/>
+		<property name="com.jaspersoft.studio.field.label" value="name"/>
+	</field>
+	<field name="age" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="age"/>
+		<property name="com.jaspersoft.studio.field.label" value="age"/>
+	</field>
+	<background splitType="Stretch"/>
+	<title height="48" splitType="Stretch">
+		<element kind="textField" uuid="63fd46bb-8880-4a3b-a6c6-8f5fa5d6724e" x="2" y="0" width="550" height="30" fontSize="14.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<expression><![CDATA[$P{reportTitle}]]></expression>
+		</element>
+	</title>
+	<pageHeader height="47" splitType="Stretch">
+		<element kind="textField" uuid="89aef5f8-e179-480b-8893-972cb5e1e927" x="453" y="1" width="100" height="30" vTextAlign="Middle">
+			<expression><![CDATA[$P{maker}]]></expression>
+		</element>
+		<element kind="textField" uuid="0fccb4b7-c6c5-4b78-b558-8fd91028852c" x="353" y="2" width="100" height="30" hTextAlign="Right" vTextAlign="Middle">
+			<expression><![CDATA["Maker:"]]></expression>
+		</element>
+		<element kind="textField" uuid="23c2dd9e-1de5-40bf-99f0-27b1af5fac67" x="100" y="10" width="100" height="30" vTextAlign="Middle">
+			<expression><![CDATA[$P{age}]]></expression>
+		</element>
+		<element kind="textField" uuid="b2999719-95b5-4f6b-a962-bf7a1280b77a" x="0" y="10" width="100" height="30" hTextAlign="Right" vTextAlign="Middle">
+			<expression><![CDATA["Age:"]]></expression>
+		</element>
+	</pageHeader>
+	<columnHeader height="32" splitType="Stretch">
+		<element kind="staticText" uuid="d4e0b17b-8141-4dad-ae89-f76f73043350" x="0" y="1" width="100" height="30" hTextAlign="Left" vTextAlign="Middle">
+			<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0de92ef6-e2f7-42b0-b655-69bf2256aab9"/>
+			<box>
+				<topPen lineWidth="0.25"/>
+				<leftPen lineWidth="0.25"/>
+				<bottomPen lineWidth="0.25"/>
+			</box>
+			<text><![CDATA[id]]></text>
+		</element>
+		<element kind="staticText" uuid="217bd248-3b9c-4a0f-b1d2-e5b8625a17f3" x="100" y="1" width="100" height="30" hTextAlign="Left" vTextAlign="Middle">
+			<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="16ed6c1d-45ac-4e85-bdcf-4f8a4a4f5e59"/>
+			<box>
+				<topPen lineWidth="0.25"/>
+				<leftPen lineWidth="0.25"/>
+				<bottomPen lineWidth="0.25"/>
+			</box>
+			<text><![CDATA[name]]></text>
+		</element>
+		<element kind="staticText" uuid="171a378f-396a-4d96-b53b-ed9a5c20e2f9" x="200" y="1" width="100" height="30" hTextAlign="Left" vTextAlign="Middle">
+			<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="94bf53ec-c53a-4398-b352-30c77f6bbad7"/>
+			<box>
+				<topPen lineWidth="0.25"/>
+				<leftPen lineWidth="0.25"/>
+				<bottomPen lineWidth="0.25"/>
+				<rightPen lineWidth="0.25"/>
+			</box>
+			<text><![CDATA[age]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="30" splitType="Stretch">
+			<element kind="textField" uuid="2aee6f7a-e6be-4b30-9214-0f82d0a57ac8" x="0" y="0" width="100" height="30" vTextAlign="Middle">
+				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0de92ef6-e2f7-42b0-b655-69bf2256aab9"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<expression><![CDATA[$F{id}]]></expression>
+			</element>
+			<element kind="textField" uuid="3bfae2ad-f77f-4a50-8d65-6cd6eb5e9bcc" x="100" y="0" width="100" height="30" vTextAlign="Middle">
+				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="16ed6c1d-45ac-4e85-bdcf-4f8a4a4f5e59"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<expression><![CDATA[$F{name}]]></expression>
+			</element>
+			<element kind="textField" uuid="2110c1dd-820d-4a20-b05b-21f396467bba" x="200" y="0" width="100" height="30" hTextAlign="Center" vTextAlign="Middle">
+				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="94bf53ec-c53a-4398-b352-30c77f6bbad7"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<expression><![CDATA[$F{age}]]></expression>
+			</element>
+		</band>
+	</detail>
+	<columnFooter height="45" splitType="Stretch"/>
+	<pageFooter height="31" splitType="Stretch">
+		<element kind="textField" uuid="70a770bf-0626-493f-8cb4-b79b9e4189b5" x="230" y="0" width="100" height="30" hTextAlign="Center" vTextAlign="Middle">
+			<expression><![CDATA[$V{PAGE_NUMBER} +" - "+ $V{PAGE_COUNT}]]></expression>
+		</element>
+	</pageFooter>
+	<summary height="42" splitType="Stretch"/>
+	<noData height="99">
+		<element kind="textField" uuid="09234382-279a-46dc-86fd-10c532a9d38d" x="0" y="3" width="550" height="30" fontSize="14.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<expression><![CDATA[$P{reportTitle}]]></expression>
+		</element>
+		<element kind="staticText" uuid="23be8ed9-6d60-4d9a-8660-3ae8a384fb1b" x="0" y="50" width="553" height="49" forecolor="#FF0E0A" fontName="Arial" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[*** ⚠ No data available to display. ***
+Please adjust your filters or date range and try again.]]></text>
+		</element>
+	</noData>
+</jasperReport>

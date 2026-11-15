@@ -1,0 +1,186 @@
+# Full platform on one machine:
+#   ./scripts/generate-jwt-keys.sh && cp .env.example .env
+#   mvn -DskipTests package && docker compose up -d --build
+# Gateway: http://localhost:8080  (Swagger UI: /swagger-ui.html)
+
+x-service: &service
+  build:
+    context: .
+    dockerfile: docker/service.Dockerfile
+  restart: unless-stopped
+  environment: &service-env
+    SPRING_PROFILES_ACTIVE: docker
+    CONFIG_SERVER_URL: http://config-server:8888
+    DB_USERNAME: ${DB_USERNAME:-office}
+    DB_PASSWORD: ${DB_PASSWORD:-office}
+    RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-office}
+    RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-office}
+    CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4300,http://localhost:3000}
+  depends_on: &service-deps
+    config-server:
+      condition: service_healthy
+    discovery-server:
+      condition: service_healthy
+
+x-healthcheck: &healthcheck
+  interval: 10s
+  timeout: 5s
+  retries: 30
+  start_period: 30s
+
+services:
+  # ---------------------------------------------------------------- backing services
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_USER: ${DB_USERNAME:-office}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-office}
+      TZ: UTC
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    ports: ["3316:3306"]
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-root}"]
+      <<: *healthcheck
+
+  rabbitmq:
+    image: rabbitmq:4.1-management
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-office}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-office}
+    ports: ["5672:5672", "15672:15672"]
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      <<: *healthcheck
+
+  zipkin:
+    image: openzipkin/zipkin:3
+    restart: unless-stopped
+    ports: ["9411:9411"]
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    restart: unless-stopped
+    ports: ["9090:9090"]
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on: [discovery-server]
+
+  grafana:
+    image: grafana/grafana:12.1.1
+    restart: unless-stopped
+    ports: ["3001:3000"]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on: [prometheus]
+
+  # ---------------------------------------------------------------- platform
+  config-server:
+    <<: *service
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args: { MODULE: infrastructure/config-server }
+    environment:
+      CONFIG_REPO_LOCATION: file:/config-repo/
+    volumes:
+      - ./config-repo:/config-repo:ro
+    depends_on: {}
+    ports: ["8888:8888"]
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8888/actuator/health"]
+      <<: *healthcheck
+
+  discovery-server:
+    <<: *service
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args: { MODULE: infrastructure/discovery-server }
+    environment:
+      EUREKA_HOSTNAME: discovery-server
+    depends_on: {}
+    ports: ["8761:8761"]
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8761/actuator/health"]
+      <<: *healthcheck
+
+  api-gateway:
+    <<: *service
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args: { MODULE: infrastructure/api-gateway }
+    ports: ["8080:8080"]
+    depends_on:
+      <<: *service-deps
+      identity-service:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------- business services
+  identity-service:
+    <<: *service
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args: { MODULE: services/identity-service }
+    environment:
+      <<: *service-env
+      JWT_PRIVATE_KEY_LOCATION: ${JWT_PRIVATE_KEY_LOCATION:-}
+      JWT_PUBLIC_KEY_LOCATION: ${JWT_PUBLIC_KEY_LOCATION:-}
+    volumes:
+      - ./keys:/keys:ro
+    depends_on:
+      <<: *service-deps
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8081/actuator/health/readiness"]
+      <<: *healthcheck
+
+  report-service:
+    <<: *service
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args: { MODULE: services/report-service }
+    environment:
+      <<: *service-env
+      REPORT_STORAGE_DIR: /app/data/report-storage
+      # To query another database (e.g. the core-banking replica) set REPORT_DB_URL / REPORT_DB_USERNAME /
+      # REPORT_DB_PASSWORD here or in docker-compose.override.yml. Default: office_report itself.
+    volumes:
+      - report-storage:/app/data/report-storage
+    depends_on:
+      <<: *service-deps
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  notification-service:
+    <<: *service
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args: { MODULE: services/notification-service }
+    depends_on:
+      <<: *service-deps
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  mysql-data:
+  rabbitmq-data:
+  report-storage:

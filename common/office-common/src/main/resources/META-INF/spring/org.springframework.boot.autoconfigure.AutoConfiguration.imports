@@ -1,0 +1,4 @@
+com.sol.office.common.web.OfficeWebAutoConfiguration
+com.sol.office.common.persistence.OfficeJpaAutoConfiguration
+com.sol.office.common.security.OfficeSecurityAutoConfiguration
+com.sol.office.common.feign.OfficeFeignAutoConfiguration
