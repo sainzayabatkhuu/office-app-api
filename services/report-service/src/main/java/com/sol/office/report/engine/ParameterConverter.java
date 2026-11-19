@@ -18,11 +18,21 @@ import java.util.List;
  */
 public final class ParameterConverter {
 
+    /** Template parameter class for a set of branch codes; the UI shows a branch picker for it. */
+    public static final String BRANCH_LIST_TYPE = "com.sol.jasper.params.BranchList";
+    /** Input type sent to the UI for {@link #BRANCH_LIST_TYPE} parameters. */
+    public static final String BRANCH_LIST_INPUT = "BranchList";
+
     private ParameterConverter() {
+    }
+
+    public static boolean isBranchList(String javaType) {
+        return BRANCH_LIST_TYPE.equals(javaType);
     }
 
     public static String inputTypeFor(String javaType) {
         return switch (javaType) {
+            case BRANCH_LIST_TYPE -> BRANCH_LIST_INPUT;
             case "java.lang.Integer", "java.lang.Long", "java.lang.Short", "java.math.BigDecimal",
                  "java.lang.Double", "java.lang.Float" -> "number";
             case "java.util.Date", "java.sql.Date", "java.time.LocalDate" -> "date";

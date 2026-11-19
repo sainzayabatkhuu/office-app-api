@@ -83,10 +83,11 @@ public class ReportCatalogService {
         if (ReportAccess.applicable(report, user).isEmpty()) {
             throw NotFoundException.of("Report", id);
         }
-        System.out.println(report.getParameters());
         var parameters = report.getParameters().stream()
                 .filter(p -> !p.isSystemParam())
-                .filter(p -> user.multiBranchAccess() || !SystemParameters.BRANCH.equals(p.getInputType()))
+                // single-branch users cannot choose branches (the server fills their own), so these fields are not sent
+                .filter(p -> user.multiBranchAccess()
+                        || !(SystemParameters.BRANCH.equals(p.getName()) || ParameterConverter.isBranchList(p.getJavaType())))
                 .map(mapper::toDto)
                 .toList();
         return new ReportDetail(mapper.toSummary(report), parameters, null);

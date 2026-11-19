@@ -4,7 +4,7 @@
 	<parameter name="maker" class="java.lang.String"/>
 	<parameter name="branchId" class="com.sol.jasper.params.BranchList">
 		<description><![CDATA[Салбар]]></description>
-		<defaultValueExpression><![CDATA[new com.sol.jasper.params.BranchList("000")]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[new com.sol.jasper.params.BranchList("")]]></defaultValueExpression>
 	</parameter>
 	<parameter name="p_count" class="java.lang.Integer">
 		<description><![CDATA[Тоо]]></description>

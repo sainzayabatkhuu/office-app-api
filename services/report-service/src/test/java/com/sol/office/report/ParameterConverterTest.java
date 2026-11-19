@@ -54,5 +54,6 @@ class ParameterConverterTest {
         assertThat(ParameterConverter.inputTypeFor("java.util.Date")).isEqualTo("date");
         assertThat(ParameterConverter.inputTypeFor("java.math.BigDecimal")).isEqualTo("number");
         assertThat(ParameterConverter.inputTypeFor("java.lang.String")).isEqualTo("text");
+        assertThat(ParameterConverter.inputTypeFor("com.sol.jasper.params.BranchList")).isEqualTo("BranchList");
     }
 }

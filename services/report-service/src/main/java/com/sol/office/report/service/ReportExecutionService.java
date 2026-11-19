@@ -126,8 +126,16 @@ public class ReportExecutionService {
                     case SystemParameters.MAKER_NAME -> user.fullName();
                     default -> null;
                 };
-            } else if (SystemParameters.BRANCH.equals(name) && !user.multiBranchAccess()) {
+            } else if ((SystemParameters.BRANCH.equals(name) || ParameterConverter.isBranchList(p.getJavaType()))
+                    && !user.multiBranchAccess()) {
+                // single-branch users only ever see their own branch, whatever the client sends
                 value = user.branchCode();
+            } else if (ParameterConverter.isBranchList(p.getJavaType())) {
+                // nothing chosen means all branches (BranchList treats ALL as no filter)
+                value = supplied.get(name);
+                if (!StringUtils.hasText(value)) {
+                    value = StringUtils.hasText(p.getDefaultValue()) ? p.getDefaultValue() : "ALL";
+                }
             } else {
                 value = supplied.get(name);
                 if (!StringUtils.hasText(value)) {
